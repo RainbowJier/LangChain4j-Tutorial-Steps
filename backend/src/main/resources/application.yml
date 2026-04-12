@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+llm:
+  provider: ${LLM_PROVIDER:deepseek}
+  deepseek:
+    base-url: https://api.deepseek.com
+    api-key: ${DEEPSEEK_API_KEY:your-api-key-here}
+    model-name: deepseek-chat
+  openai:
+    base-url: https://api.openai.com
+    api-key: ${OPENAI_API_KEY:your-api-key-here}
+    model-name: gpt-4o
+
+rag:
+  chunk-size: 500
+  chunk-overlap: 100
+  max-results: 5
+
+chat:
+  max-memory-messages: 20
+
+logging:
+  level:
+    dev.langchain4j: DEBUG
+    com.geosmart: DEBUG
