@@ -1,4 +1,4 @@
 llm:
-  provider: deepseek
-  deepseek:
-    api-key: ${DEEPSEEK_API_KEY:sk-your-deepseek-key}
+  provider: zhipu
+  zhipu:
+    api-key: ${ZHIPU_API_KEY:ca185773e1ce488d95ad25fee97f94c7.X4Hw6MxEIohk4IEp}

@@ -7,9 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "llm")
 public class LlmProperties {
 
-    private String provider = "deepseek";
+    private String provider = "zhipu";
     private ProviderConfig deepseek = new ProviderConfig();
     private ProviderConfig openai = new ProviderConfig();
+    private ProviderConfig zhipu = new ProviderConfig();
 
     @Data
     public static class ProviderConfig {
@@ -24,6 +25,7 @@ public class LlmProperties {
     public ProviderConfig getActiveConfig() {
         return switch (provider.toLowerCase()) {
             case "openai" -> openai;
+            case "zhipu" -> zhipu;
             default -> deepseek;
         };
     }
