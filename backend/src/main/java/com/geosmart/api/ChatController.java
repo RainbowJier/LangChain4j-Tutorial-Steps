@@ -4,6 +4,7 @@ import com.geosmart.api.dto.ChatRequest;
 import com.geosmart.chat.ChatSessionManager;
 import com.geosmart.chat.GeoSmartAssistant;
 import dev.langchain4j.service.TokenStream;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import java.util.concurrent.Executors;
 
 @RestController
 @RequestMapping("/api/chat")
+@RequiredArgsConstructor
 public class ChatController {
 
     private static final Logger log = LoggerFactory.getLogger(ChatController.class);
@@ -24,11 +26,6 @@ public class ChatController {
 
     private final GeoSmartAssistant assistant;
     private final ChatSessionManager sessionManager;
-
-    public ChatController(GeoSmartAssistant assistant, ChatSessionManager sessionManager) {
-        this.assistant = assistant;
-        this.sessionManager = sessionManager;
-    }
 
     @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chat(@RequestBody ChatRequest request) {
