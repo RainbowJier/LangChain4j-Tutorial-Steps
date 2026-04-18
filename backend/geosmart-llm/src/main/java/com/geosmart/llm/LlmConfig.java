@@ -2,6 +2,8 @@ package com.geosmart.llm;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
@@ -60,5 +62,11 @@ public class LlmConfig {
                 .apiKey(config.getApiKey())
                 .modelName(config.getModelName())
                 .build();
+    }
+
+    @Bean
+    public EmbeddingModel embeddingModel() {
+        log.info("Initializing EmbeddingModel: AllMiniLmL6V2");
+        return new AllMiniLmL6V2EmbeddingModel();
     }
 }
