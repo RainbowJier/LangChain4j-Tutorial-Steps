@@ -1,0 +1,15 @@
+# LLM 配置 — 支持智谱 GLM、DeepSeek、OpenAI
+# 选择一个提供商，填入对应的 API Key
+llm:
+  # 当前使用的提供商（zhipu / deepseek）
+  provider: deepseek
+
+  deepseek:
+    base-url: https://api.deepseek.com/
+    api-key: sk-b7af95c17ba7497687d5477918b38d43
+    model-name: deepseek-chat
+
+  zhipu:
+    base-url: https://open.bigmodel.cn/api/paas/v4/
+    api-key: ${LLM_API_KEY:your-api-key-here}
+    model-name: glm-4-flash

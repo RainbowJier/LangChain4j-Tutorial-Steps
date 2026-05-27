@@ -1,4 +1,0 @@
-llm:
-  provider: zhipu
-  zhipu:
-    api-key: ${ZHIPU_API_KEY:ca185773e1ce488d95ad25fee97f94c7.X4Hw6MxEIohk4IEp}

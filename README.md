@@ -1,56 +1,39 @@
-# GeoSmart-Agent
+# LangChain4j 渐进式教学项目
 
-面向国土空间规划的全栈智能助手。通过 RAG（检索增强生成）实现政策咨询，通过 Agent（智能体工具调用）实现业务办理。
+从零到一构建 AI 应用 — 面向有经验的 Java 开发者。
 
-**核心痛点：** 国土法规更新快、查询难，业务系统操作门槛高。
-**解决方案：** RAG 解决知识储备 + Agent 解决业务执行。
+通过 **10 个渐进式步骤**，掌握 LangChain4j 核心概念：LLM 调用、流式输出、RAG 检索增强生成、Agent 工具调用、会话记忆，最终构建完整的
+Spring Boot + Vue 3 全栈应用。
 
-## 功能特性
-
-- **智能对话** — 基于 LLM 的自然语言交互，SSE 流式响应实时显示
-- **政策咨询（RAG）** — 上传 PDF/DOCX/TXT 文档，自动解析分块、向量化存储，检索增强生成回答
-- **业务办理（Agent Tools）** — 法规检索、空间查询、业务进度查询等工具调用
-- **多会话管理** — 支持多轮对话、会话新建/切换、历史记录持久化
-- **文档上传** — 支持 PDF、DOCX、TXT 格式，自动入库供 RAG 检索
-- **多 LLM 提供商** — 支持智谱 GLM、DeepSeek、OpenAI，通过配置切换
-
-## 技术栈
-
-| 层 | 技术 |
-|----|------|
-| 后端 | Spring Boot 3.5 + Java 17 + LangChain4j 1.13 |
-| 前端 | Vue 3 + TypeScript + Vite 8 + Element Plus + Pinia |
-| AI | LangChain4j（ChatModel、RAG、Tool、ChatMemory） |
-| 向量模型 | All-MiniLM-L6-v2（ONNX 本地推理） |
-| 文档解析 | Apache PDFBox + Apache POI |
-
-## 项目结构
+## 学习路线
 
 ```
-GeoSmart-Agent/
-├── backend/                          # Spring Boot 多模块后端
-│   ├── geosmart-llm/                 # LLM 提供商配置模块
-│   ├── geosmart-rag/                 # RAG 管道模块
-│   ├── geosmart-tools/               # Agent 工具模块
-│   ├── geosmart-chat/                # Chat 装配模块
-│   ├── geosmart-api/                 # REST API 模块（可执行 JAR）
-│   └── pom.xml                       # 父 POM 配置
-├── frontend/                         # Vue 3 前端
-│   └── src/
-│       ├── views/ChatView.vue        # 聊天主界面
-│       ├── stores/chat.ts            # Pinia 状态管理
-│       └── api/chat.ts               # SSE 流式 API 客户端
-├── CLAUDE.md                         # Claude Code 工作指导
-└── README.md
+Step 00 ─── Step 01 ─── Step 02 ─── Step 03 ─── Step 04 ─── Step 05 ─── Step 06
+环境准备    你好 LLM    流式输出    RAG 基础    Agent 工具   会话记忆    完整装配
+  │                                                                 │
+  └── 纯 Java（无需 Spring Boot）─────────────────────────────────────┘
+                                                                        │
+Step 07 ─── Step 08 ─── Step 09 ─── final/
+Spring Boot  Vue 前端   生产优化     完整项目
+  │
+  └── Spring Boot + Vue 3 全栈 ──┘
 ```
 
-### 后端模块说明
+## 各步骤概览
 
-- **geosmart-llm**: LLM 提供商配置（支持智谱 GLM、DeepSeek、OpenAI）
-- **geosmart-rag**: RAG 检索增强生成（文档解析、向量化、检索）
-- **geosmart-tools**: Agent 工具集（法规检索、空间查询、业务状态查询）
-- **geosmart-chat**: Chat 服务装配（AiService、会话管理、工具集成）
-- **geosmart-api**: REST API 层（SSE 流式传输、文档上传、会话管理）
+| 步骤                                        | 主题          | 学到什么                                | 运行方式                  |
+|-------------------------------------------|-------------|-------------------------------------|-----------------------|
+| [Step 00](steps/step-00-setup/)           | 环境准备        | 配置 API Key，验证连通性                    | `mvn exec:java`       |
+| [Step 01](steps/step-01-hello-llm/)       | 你好 LLM      | ChatModel、AiServices、@SystemMessage | `mvn exec:java`       |
+| [Step 02](steps/step-02-streaming/)       | 流式输出        | StreamingChatModel、TokenStream 回调   | `mvn exec:java`       |
+| [Step 03](steps/step-03-rag-retrieval/)   | RAG 基础      | Embedding、向量存储、文档分块、检索              | `mvn exec:java`       |
+| [Step 04](steps/step-04-agent-tools/)     | Agent 工具    | @Tool、@P、Function Calling           | `mvn exec:java`       |
+| [Step 05](steps/step-05-memory-session/)  | 会话记忆        | ChatMemory、@MemoryId、多会话隔离          | `mvn exec:java`       |
+| [Step 06](steps/step-06-full-aiservice/)  | 完整装配        | AiServices.builder() 综合集成           | `mvn exec:java`       |
+| [Step 07](steps/step-07-spring-boot-api/) | Spring Boot | 多模块架构、@Bean、SSE 端点                  | `mvn spring-boot:run` |
+| [Step 08](steps/step-08-vue-frontend/)    | Vue 前端      | Composition API、Pinia、SSE 客户端       | `npm run dev`         |
+| [Step 09](steps/step-09-production/)      | 生产优化        | 向量数据库、监控、安全                         | `mvn exec:java`       |
+| [final/](final/)                          | 完整项目        | 全栈参考实现                              | 全栈启动                  |
 
 ## 快速开始
 
@@ -58,96 +41,76 @@ GeoSmart-Agent/
 
 - Java 17+
 - Maven 3.8+
-- Node.js 20.19+ 或 22.12+
-- LLM API Key（智谱 / DeepSeek / OpenAI 任选其一）
+- Node.js 20.19+（仅 Step 08 和 final/）
+- LLM API Key（推荐智谱 GLM，注册送免费额度）
 
-### 配置
-
-编辑 `backend/src/main/resources/application.yml`，设置 LLM API Key：
-
-```yaml
-llm:
-  provider: zhipu                    # 可选：zhipu | deepseek | openai
-  zhipu:
-    api-key: YOUR_ZHIPU_API_KEY
-```
-
-也可通过环境变量覆盖：`LLM_PROVIDER=zhipu`、`ZHIPU_API_KEY=xxx`。
-
-### 启动
-
-**1. 启动后端**
+### 30 分钟跑通核心流程
 
 ```bash
-cd backend/geosmart-api
-mvn spring-boot:run                  # 端口 8080
+# 1. 克隆项目
+git clone <repo-url>
+cd langchain4j-tutorial
 
-# 或者使用可执行 JAR
-cd backend
-java -jar geosmart-api/target/geosmart-api-0.1.0-SNAPSHOT.jar
+# 2. 配置 API Key
+export LLM_API_KEY=your-key-here
+# 或者编辑 steps/step-00-setup/src/main/resources/application.yml
+
+# 3. 验证环境
+cd steps/step-00-setup
+mvn compile exec:java
+
+# 4. 逐步学习
+cd ../step-01-hello-llm && mvn compile exec:java
+cd ../step-03-rag-retrieval && mvn compile exec:java   # 体验 RAG！
+cd ../step-04-agent-tools && mvn compile exec:java     # 体验工具调用！
 ```
 
-**2. 启动前端**
-
-```bash
-cd frontend
-npm install
-npm run dev                          # 端口 5173，/api 代理至 localhost:8080
-```
-
-**3. 访问**
-
-打开 http://localhost:5173
-
-## 架构
+## 项目结构
 
 ```
-Vue 3 (5173)  ──SSE/REST──▶  Spring Boot 多模块架构 (8080)
-                                  ├── geosmart-api (REST 控制器)
-                                  ├── geosmart-chat (AiService 装配)
-                                  ├── geosmart-tools (Agent 工具)
-                                  ├── geosmart-rag (RAG 管道)
-                                  └── geosmart-llm (LLM 提供商)
+langchain4j-tutorial/
+├── steps/                           # 渐进式学习步骤（Step 00-09）
+│   ├── step-00-setup/               # 环境准备
+│   ├── step-01-hello-llm/           # 最简 LLM 调用
+│   ├── step-02-streaming/           # 流式输出
+│   ├── step-03-rag-retrieval/       # RAG 基础
+│   ├── step-04-agent-tools/         # Agent 工具调用
+│   ├── step-05-memory-session/      # 会话记忆
+│   ├── step-06-full-aiservice/      # 完整 AiService 装配
+│   ├── step-07-spring-boot-api/     # Spring Boot REST API
+│   ├── step-08-vue-frontend/        # Vue 3 前端集成
+│   └── step-09-production/          # 生产优化
+├── final/                           # 完整可运行项目（最终形态）
+│   ├── backend/                     # Spring Boot 多模块后端
+│   └── frontend/                    # Vue 3 完整前端
+├── docs/                            # 教学文档
+│   ├── guides/                      # 每步学习指南
+│   ├── diagrams/                    # 架构图
+│   └── api-reference/               # API 速查
+└── exercises/                       # 课后练习
+    ├── solutions/                   # 参考答案
+    └── challenges/                  # 挑战题
 ```
 
-**模块依赖关系：**
-```
-geosmart-api
-  ├── geosmart-chat
-  │   ├── geosmart-tools
-  │   │   ├── geosmart-rag
-  │   │   │   └── geosmart-llm
-  │   │   └── geosmart-llm
-  │   └── geosmart-rag
-  └── geosmart-tools
-```
+## 技术栈
 
-**核心集成点：**
-- `ChatConfig.java` (geosmart-chat) — 装配 AiServices，注册工具、ContentRetriever、ChatMemoryProvider
-- `GeoSmartAssistant.java` (geosmart-chat) — 定义系统提示词和 `chat()` 接口契约
-- `ChatController.java` (geosmart-api) — SSE 流式传输和 HTTP 请求处理
-- `ChatView.vue` — 前端聊天界面，通过 `ReadableStream` 解析 SSE 流式数据
+| 层       | 技术                         | 版本        |
+|---------|----------------------------|-----------|
+| 后端      | Spring Boot + Java 17      | 3.5.0     |
+| AI 框架   | LangChain4j                | 1.13.0    |
+| 前端      | Vue 3 + TypeScript + Vite  | 3.5 / 8.0 |
+| UI 组件   | Element Plus               | 2.13      |
+| 状态管理    | Pinia                      | 3.0       |
+| 向量模型    | All-MiniLM-L6-v2 (ONNX)    | 本地推理      |
+| LLM 提供商 | 智谱 GLM / DeepSeek / OpenAI | 可切换       |
 
-## 常用命令
+## 设计理念
 
-```bash
-# 后端（多模块构建）
-cd backend
-mvn compile                          # 编译所有模块
-mvn test                             # 运行所有模块测试
-mvn test -Dtest=TestClassName        # 运行单个测试类
-mvn spring-boot:run                  # 启动开发服务器（从 geosmart-api 模块）
-mvn clean install -DskipTests        # 完整构建并安装到本地仓库
-mvn clean package -DskipTests        # 打包可执行 JAR
-
-# 前端
-cd frontend
-npm run dev                          # 开发服务器 + HMR
-npm run build                        # 类型检查 + 生产构建
-npm run type-check                   # 仅 TypeScript 类型检查
-npm run lint                         # oxlint + eslint
-```
+1. **一步一概念**：每个步骤只引入一个新概念，其他保持不变
+2. **独立可运行**：每个步骤都是完整可运行的 Maven 项目
+3. **渐进式复杂度**：从 1 个 Java 文件 → 5 个 Maven 模块 → 全栈应用
+4. **概念桥梁**：Step 06 的纯 Java 代码与 Step 07 的 Spring Boot 代码一一对照
 
 ## License
 
-Private — Internal Use Only
+MIT
