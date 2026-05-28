@@ -1,83 +1,140 @@
-# Step 03: RAG 检索增强生成
+# Step 03: RAG Search Enhancement Generation
 
-## 学习目标
+## Table of Contents
 
-- 理解 RAG（Retrieval-Augmented Generation）的核心原理
-- 掌握 Embedding、向量存储、文档摄入、内容检索的完整流程
-- 理解文本分块策略（为什么 500 字？为什么 100 字重叠？）
-- 体验 RAG 如何让 LLM 基于你的私有文档回答问题
+- [Learning Target](#learning-target)
+- [Prerequisites](#prerequisites)
+- [Core Concepts](#core-concepts)
+  - [RAG Workflow](#rag-workflow)
+  - [Key Components](#key-components)
+  - [Why Text Chunking?](#why-text-chunking)
+  - [What is Overlap?](#what-is-overlap)
+- [Operation Mode](#operation-mode)
+- [What you will see](#what-you-will-see)
+- [Differences from Previous Step](#differences-from-previous-step)
+- [Exercises](#exercises)
+- [Next Steps](#next-steps)
 
-## 前置条件
+---
 
-- 完成 [Step 01: 你好 LLM](../step-01-hello-llm/)
+## Learning Target
 
-## 核心概念
+- Understand the core concepts of RAG (Retrieval-Augmented Generation).
+- Master the complete process of Embedding, Vector Store, Document Intake, Content Retrieval.
+- Understand the text chunking strategy (why 500 words? why 100 words `overlap`[重叠]?).
+- Experience how RAG enables LLM to answer questions based on your private documents.
 
-### RAG 流程
+--- 
+
+## Prerequisites
+
+- Complete [Step 01: Hello LLM](../step-01-hello-llm/)
+
+--- 
+
+## Core Concepts
+
+### RAG Workflow
 
 ```
-用户提问: "API 分页参数的默认值是什么？"
+Ask: "What is the default value of page params for API?"
     ↓
-1. 问题转向量     EmbeddingModel.embed("API 分页参数...")
-2. 向量检索       在 EmbeddingStore 中找最相似的 5 段文本
-3. 拼接上下文     把 5 段文本 + 问题一起发给 LLM
-4. LLM 生成回答   基于上下文生成："默认 page=0, size=20"
+1. Question to Vector: EmbeddingModel.embed("Page Params for API...")
+2. Vector Retrieval: Finding the most similar 5 pieces of text in the EmbeddingStore.
+3. Merge Context: Send 5 peices of text and questions to LLM.
+4. LLM Generate Answer: Based on the context, generate: "The default value of page params for API is page=0, size=20"
 ```
 
-### 关键组件
+### Key Components
 
-| 组件 | 作用 | 本步使用 |
-|------|------|---------|
-| `EmbeddingModel` | 文本转向量 | AllMiniLmL6-v2（本地，384 维） |
-| `EmbeddingStore` | 存储向量 | InMemoryEmbeddingStore（内存） |
-| `DocumentSplitter` | 文本分块 | recursive(500, 100) |
-| `EmbeddingStoreIngestor` | 分块+向量化+存储 | 一步完成摄入 |
-| `ContentRetriever` | 检索相关内容 | maxResults=5 |
+| Component                | Purpose                     | Used in this step              |
+|--------------------------|-----------------------------|--------------------------------|
+| `EmbeddingModel`         | Text to Vector              | AllMiniLmL6-v2（local, 384-dim） |
+| `EmbeddingStore`         | Vector Store                | InMemoryEmbeddingStore（memory） |
+| `DocumentSplitter`       | Text Chunk                  | recursive(500, 100)            |
+| `EmbeddingStoreIngestor` | Chunk + Vector + Store      | One-step ingestion             |
+| `ContentRetriever`       | Search for relevant content | maxResults=5                   |
 
-### 为什么需要分块？
+### Why Text Chunking?
 
-- LLM 上下文窗口有限，不能把整个文档塞进去
-- 分块后检索更精准（只返回最相关的几段）
-- 重叠（overlap=100）保证跨块边界的信息不丢失
+- LLM context window is limited; you cannot feed the entire document
+- Retrieval is more `precise`[精确] after chunking (returns only the most relevant segments)
+- Overlap (overlap=100) ensures information across chunk boundaries is not lost
 
-## 运行方式
+### What is Overlap?
+
+Overlap means shared text between consecutive chunks. When splitting a document, the last N tokens of Chunk 1 appear at the start of Chunk 2.
+
+**Example:**
+- Original text: "API parameters include page, size, sort, and filter..."
+- Chunk size: 500 tokens | Overlap: 100 tokens
+- Chunk 1: tokens 1-500
+- Chunk 2: tokens 401-900 (includes tokens 401-500 from Chunk 1)
+- Chunk 3: tokens 801-1300 (includes tokens 801-900 from Chunk 2)
+
+```
+┌─────────────────────────────────────────┐
+│ Chunk 1: [tokens 1-500]                 │
+│ └─ overlap: tokens 401-500 ─┬───────┐   │
+├─────────────────────────────┼───────┤   │
+│ Chunk 2: [tokens 401-900]   │       │   │
+│ └─ overlap: tokens 801-900 ─┼───────┼─┐ │
+├─────────────────────────────┼───────┼─│ │
+│ Chunk 3: [tokens 801-1300]  │       │ │ │
+└─────────────────────────────┴───────┴─│ │
+                                    ↑ │ │
+                                    └─┴─┘  Overlap ensures context continuity
+```
+
+Benefits**:**
+1. **Preserves[保留] context**: Sentences split across chunks remain connected
+2. **Better retrieval**: Relevant information appears in multiple chunks
+3. **Reduces edge cases**: Important concepts less likely to be cut off
+
+--- 
+
+## Operation Mode
 
 ```bash
 cd steps/step-03-rag-retrieval
 mvn compile exec:java
 ```
 
-> 首次运行会下载 AllMiniLmL6-v2 ONNX 模型（约 23MB），请耐心等待。
-
-## 你会看到什么
+## What you will see 
 
 ```
-=== Step 03: RAG 检索增强生成 ===
+=== Step 03: RAG Retrieval-Augmented Generation ===
 
-[1/9] 创建 Embedding 模型...
-      AllMiniLmL6-v2 就绪（384 维，本地 ONNX 推理）
-[2/9] 创建向量存储...
-      InMemoryEmbeddingStore 就绪
+[1/9] Creating Embedding model...
+      AllMiniLmL6-v2 ready (384 dimensions, local ONNX inference)
+[2/9] Creating vector store...
+      InMemoryEmbeddingStore ready
 ...
-[8/9] 组装 AI 服务...
-      AI 服务组装完成！
+[8/9] Assembling[组装] AI service...
+      AI service assembled!
 
-=== RAG 对话 ===
-你: 编码规范中类名应该怎么命名？
-助手: 根据手册第一条，类名应使用大驼峰命名法（PascalCase）...
+=== RAG Conversation ===
+You: How should class names be named in coding conventions?
+Assistant: According to the handbook rule 1, class names should use PascalCase...
 ```
 
-## 与上一步的区别
+--- 
 
-- Step 02：LLM 只能用训练数据回答
-- **Step 03**：LLM 能基于你的文档（knowledge-base.txt）回答 — 关键区别是 `.contentRetriever(retriever)`
+## Differences from Previous Step
 
-## 练习
+- Step 02: LLM can only answer using training data
+- **Step 03**: LLM can answer based on your documents (knowledge-base.txt) — key difference is `.contentRetriever(retriever)`
 
-- [ ] 修改分块大小为 50，再问具体问题，观察检索质量变化
-- [ ] 在 `resources/` 中添加第二个 txt 文件，修改代码加载多个文档
-- [ ] 对比有无 RAG 时对同一问题的回答（去掉 `.contentRetriever()` 再试）
+---
 
-## 下一步
+## Exercises
 
-[Step 04: Agent 工具调用](../step-04-agent-tools/) — 让 LLM 调用你写的 Java 方法
+- [ ] Modify chunk size to 50, ask specific questions, observe changes in retrieval quality
+- [ ] Add a second txt file in `resources/`, modify code to load multiple documents
+- [ ] Compare answers with and without RAG for the same question (remove `.contentRetriever()` and try again)
+
+---
+
+## Next Steps
+
+[Step 04: Agent Tool Calling](../step-04-agent-tools/) — Let LLM call your Java methods
