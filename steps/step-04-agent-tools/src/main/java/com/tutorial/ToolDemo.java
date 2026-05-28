@@ -41,7 +41,6 @@ public class ToolDemo {
 
     public static void main(String[] args) {
          ChatModel chatModel = createChatModel();
-         System.out.println("ChatModel created successfully\n");
 
          // Create tool instances
          CalculatorTool calcTool = new CalculatorTool();
