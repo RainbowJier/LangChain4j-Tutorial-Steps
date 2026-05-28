@@ -1,86 +1,79 @@
-# Step 05: 会话记忆
+# Step 05: Session Memory
 
-## 学习目标
+## Learning Target
 
-- 理解 LLM 的无状态特性（为什么需要记忆）
-- 掌握 `ChatMemory`、`MessageWindowChatMemory`
-- 掌握 `@MemoryId` 和 `ChatMemoryProvider`
-- 理解多会话隔离的原理
+1. Understand the stateless LLM (why memory is needed)
+2. Understand the `ChatMemory` and `MessageWindow`
+3. Understand the `@MemoryId` and `ChatMemoryProvider`
+4. Understand the principle of multi-session isolation
 
-## 前置条件
+## Prerequisites
 
-- 完成 [Step 01: 你好 LLM](../step-01-hello-llm/)（理解无状态问题）
+- Complete [Step 01: Hello LLM](../step-01-hello-llm/)
 
-## 核心概念
+## Core Concepts
 
-### 问题：LLM 是无状态的
+### Problem: LLM is Stateless
 
 ```
-Step 01 的对话：
-  你: 我叫小明
-  AI: 你好小明！
-  你: 我叫什么？
-  AI: 抱歉，我不知道你的名字...  ← 忘了！
+Conversation from Step 01:
+  You: My name is Xiaoming
+  AI: Hello Xiaoming!
+  You: What is my name?
+  AI: Sorry, I don't know your name...  ← Forgot!
 ```
 
-### 解决方案：ChatMemory
+### Solution: ChatMemory
 
 ```java
 AiServices.builder(MemoryAssistant.class)
     .chatModel(chatModel)
-    .chatMemoryProvider(memoryProvider)   // ← 注入记忆
+    .chatMemoryProvider(memoryProvider)   // ← Inject memory
     .build();
 ```
 
-### 关键组件
+### Key Components
 
-| 组件 | 作用 |
-|------|------|
-| `ChatMemory` | 存储对话历史 |
-| `MessageWindowChatMemory` | 滑动窗口实现，保留最近 N 条消息 |
-| `@MemoryId` | 标注会话 ID，区分不同用户/会话 |
-| `ChatMemoryProvider` | 为每个 sessionId 创建独立的 ChatMemory |
-| `InMemoryChatMemoryStore` | 内存存储（生产环境可用数据库） |
+| Component                 | Purpose                                                   |
+|---------------------------|-----------------------------------------------------------|
+| `ChatMemory`              | Store conversation history                                |
+| `MessageWindowChatMemory` | Sliding window implementation, keeps recent N messages    |
+| `@MemoryId`               | Annotate session ID, distinguish different users/sessions |
+| `ChatMemoryProvider`      | Create independent ChatMemory for each sessionId          |
+| `InMemoryChatMemoryStore` | In-memory storage (can use database in production)        |
 
-### 多会话隔离
-
-```
-user-A 的记忆: [我叫小明, AI: 你好小明]
-user-B 的记忆: [我叫小红, AI: 你好小红]
-              ↑ 互不干扰
-```
-
-## 运行方式
-
-```bash
-cd steps/step-05-memory-session
-mvn compile exec:java
-```
-
-## 你会看到什么
+### Multi-Session Isolation
 
 ```
-=== 方案 A：无记忆（问题演示） ===
-第 1 句: 我叫小明
-AI 回复: 你好小明！有什么我可以帮你的吗？
-第 2 句: 我叫什么名字？
-AI 回复: 抱歉，我不知道你的名字...  ← 没有记忆
-
-=== 方案 B：有记忆（ChatMemory） ===
-用户 A: 我叫什么？我是做什么的？
-AI: 你叫小明，你是一名 Java 开发者。  ← 记住了！
+user-A's memory: [My name is Xiaoming, AI: Hello Xiaoming]
+user-B's memory: [My name is Xiaohong, AI: Hello Xiaohong]
+                  ↑ No interference between each other
 ```
 
-## 与上一步的区别
+## What You Will See
 
-- Step 04：LLM 能调用工具，但不记得之前说过什么
-- **Step 05**：添加 `chatMemoryProvider` 后，LLM 能记住对话历史
+```
+=== Option A: No Memory (Problem Demo) ===
+Message 1: My name is Xiaoming
+AI reply: Hello Xiaoming! How can I help you?
+Message 2: What is my name?
+AI reply: Sorry, I don't know your name...  ← No memory
 
-## 练习
+=== Option B: With Memory (ChatMemory) ===
+User A: What is my name? What do I do?
+AI: Your name is Xiaoming, and you are a Java developer.  ← Remembered!
+```
 
-- [ ] 把 `maxMessages` 改为 4，连续对话 5 轮以上，观察最早的消息是否被遗忘
-- [ ] 思考：如果要实现"清除会话记忆"功能，应该怎么做？
+## Difference from Previous Step
 
-## 下一步
+- Step 04: LLM can call tools, but doesn't remember what was said before
+- **Step 05**: After adding `chatMemoryProvider`, LLM can remember conversation history
 
-[Step 06: 完整 AiService 装配](../step-06-full-aiservice/) — 把所有概念组合到一起
+## Exercises
+
+- [ ] Change `maxMessages` to 4, have more than 5 rounds of conversation, observe if the earliest messages are forgotten
+- [ ] Think: How to implement "clear session memory" functionality?
+
+## Next Step
+
+[Step 06: Complete AiService Assembly](../step-06-full-aiservice/) — Combine all concepts together
