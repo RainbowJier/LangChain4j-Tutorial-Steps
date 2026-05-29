@@ -7,9 +7,10 @@ import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.SystemMessage;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Scanner;
+
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -58,7 +59,7 @@ public class StreamingDemo {
 
         // Start streaming chat - callbacks run on background threads
         String question = "Introduce Spring Boot in 100 characters";
-        System.out.println("[Stats] Input tokens: " + question.length());  // Approximate input token count
+        System.out.println("[Stats] Input characters: " + question.length());  // Approximate length (not token count)
         
         assistant.chat(question)
                 .onPartialResponse(token -> {
@@ -94,14 +95,19 @@ public class StreamingDemo {
         Map<String, Object> config = loadConfig();
         @SuppressWarnings("unchecked")
         Map<String, Object> llmConfig = (Map<String, Object>) config.get("llm");
+        if (llmConfig == null) {
+            throw new IllegalStateException("'llm' section not found in application.yml");
+        }
         String provider = (String) llmConfig.get("provider");
+        if (provider == null) {
+            throw new IllegalStateException("'llm.provider' not configured in application.yml");
+        }
         @SuppressWarnings("unchecked")
         Map<String, String> providerConfig = (Map<String, String>) llmConfig.get(provider);
 
         String apiKey = providerConfig.get("api-key");
         if (apiKey == null || apiKey.contains("your-api-key-here")) {
-            System.err.println("Please configure API Key first! Refer to step-00-setup");
-            System.exit(1);
+            throw new IllegalStateException("Please configure API Key first! See step-00-setup");
         }
 
         return OpenAiStreamingChatModel.builder()
@@ -113,11 +119,14 @@ public class StreamingDemo {
 
     private static Map<String, Object> loadConfig() {
         Yaml yaml = new Yaml();
-        InputStream is = StreamingDemo.class.getClassLoader()
-                .getResourceAsStream("application.yml");
-        if (is == null) {
-            throw new IllegalStateException("application.yml not found");
+        try (InputStream is = StreamingDemo.class.getClassLoader()
+                .getResourceAsStream("application.yml")) {
+            if (is == null) {
+                throw new IllegalStateException("application.yml not found");
+            }
+            return yaml.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read application.yml", e);
         }
-        return yaml.load(is);
     }
 }

@@ -1,44 +1,51 @@
-<!-- ============================================================================
-     DocUpload.vue - 文档上传组件
-     ============================================================================
-     【教学要点】
-       1. 使用 Element Plus 的 el-upload 组件处理文件选择
-       2. :auto-upload="false" 禁用自动上传，改为手动控制上传逻辑
-       3. 上传状态通过三个 ref 变量管理：uploading / uploadSuccess / uploadError
-       4. setTimeout 控制成功/错误提示的自动消失
-       5. FormData 是浏览器原生 API，用于构建 multipart/form-data 请求体
-     ============================================================================ -->
-
 <template>
   <div class="doc-upload">
-    <!-- Element Plus 文件上传组件 -->
     <el-upload
-      :auto-upload="false"          <!-- 不自动上传，由 handleFileChange 手动控制 -->
-      :on-change="handleFileChange"  <!-- 文件选择变化时的回调 -->
-      :show-file-list="false"        <!-- 不显示文件列表（自行管理状态提示） -->
-      accept=".txt,.pdf,.docx,.doc"  <!-- 限制可选择的文件类型 -->
+      :auto-upload="false"
+      :on-change="handleFileChange"
+      :show-file-list="false"
+      accept=".txt,.pdf,.docx,.doc"
     >
-      <el-button size="small" type="success" plain>上传文档</el-button>
+      <el-button size="small" type="success" plain>Upload Document</el-button>
     </el-upload>
 
-    <!-- 状态提示文字 -->
-    <span v-if="uploading" class="upload-status">上传中...</span>
-    <span v-if="uploadSuccess" class="upload-success">上传成功</span>
+    <span v-if="uploading" class="upload-status">Uploading...</span>
+    <span v-if="uploadSuccess" class="upload-success">Uploaded</span>
     <span v-if="uploadError" class="upload-error">{{ uploadError }}</span>
+
+    <el-popover
+      placement="top"
+      :width="280"
+      trigger="click"
+      @show="loadDocuments"
+    >
+      <template #reference>
+        <el-button size="small" type="info" plain>
+          Documents ({{ chatStore.documents.length }})
+        </el-button>
+      </template>
+      <div class="doc-list">
+        <div v-if="chatStore.documents.length === 0" class="doc-empty">No documents uploaded</div>
+        <div v-for="doc in chatStore.documents" :key="doc" class="doc-item">
+          {{ doc }}
+        </div>
+      </div>
+    </el-popover>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { uploadDocument } from '@/api/chat'
+import { uploadDocument, listDocuments } from '@/api/chat'
+import { useChatStore } from '@/stores/chat'
 import type { UploadFile } from 'element-plus'
 
-// 上传状态变量
+const chatStore = useChatStore()
+
 const uploading = ref(false)
 const uploadSuccess = ref(false)
 const uploadError = ref('')
 
-/** 文件选择变化时的处理函数 */
 async function handleFileChange(file: UploadFile) {
   if (!file.raw) return
 
@@ -49,14 +56,22 @@ async function handleFileChange(file: UploadFile) {
   try {
     await uploadDocument(file.raw)
     uploadSuccess.value = true
-    // 3 秒后自动隐藏成功提示
+    chatStore.documents.push(file.name)
     setTimeout(() => (uploadSuccess.value = false), 3000)
   } catch (e: any) {
-    uploadError.value = e.message || '上传失败'
-    // 5 秒后自动隐藏错误提示
+    uploadError.value = e.message || 'Upload failed'
     setTimeout(() => (uploadError.value = ''), 5000)
   } finally {
     uploading.value = false
+  }
+}
+
+async function loadDocuments() {
+  try {
+    const res = await listDocuments()
+    chatStore.documents = res.documents || []
+  } catch {
+    // backend may not support listing
   }
 }
 </script>
@@ -65,11 +80,12 @@ async function handleFileChange(file: UploadFile) {
 .doc-upload {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .upload-status {
-  color: #409eff;
+  color: #909399;
   font-size: 13px;
 }
 
@@ -81,5 +97,26 @@ async function handleFileChange(file: UploadFile) {
 .upload-error {
   color: #f56c6c;
   font-size: 13px;
+}
+
+.doc-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.doc-empty {
+  color: #c0c4cc;
+  text-align: center;
+  padding: 12px;
+}
+
+.doc-item {
+  padding: 6px 4px;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.doc-item:last-child {
+  border-bottom: none;
 }
 </style>

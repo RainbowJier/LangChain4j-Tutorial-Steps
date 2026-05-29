@@ -14,6 +14,10 @@
     <artifactId>step-01-hello-llm</artifactId>
     <name>Step 01: 你好 LLM</name>
 
+    <properties>
+        <exec.mainClass>com.tutorial.HelloLlm</exec.mainClass>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>dev.langchain4j</groupId>

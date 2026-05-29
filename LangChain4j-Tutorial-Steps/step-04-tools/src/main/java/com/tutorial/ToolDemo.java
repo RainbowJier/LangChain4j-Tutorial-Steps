@@ -8,9 +8,10 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Scanner;
+
 
 /**
  * Step 04: Agent Tool Invocation — Let LLM call your Java methods.
@@ -75,15 +76,20 @@ public class ToolDemo {
         Map<String, Object> config = loadConfig();
         @SuppressWarnings("unchecked")
         Map<String, Object> llmConfig = (Map<String, Object>) config.get("llm");
+        if (llmConfig == null) {
+            throw new IllegalStateException("'llm' section not found in application.yml");
+        }
         String provider = (String) llmConfig.get("provider");
+        if (provider == null) {
+            throw new IllegalStateException("'llm.provider' not configured in application.yml");
+        }
         @SuppressWarnings("unchecked")
         Map<String, String> providerConfig = (Map<String, String>) llmConfig.get(provider);
 
-         String apiKey = providerConfig.get("api-key");
-         if (apiKey == null || apiKey.contains("your-api-key-here")) {
-             System.err.println("Please configure API Key first! See step-00-setup");
-             System.exit(1);
-         }
+        String apiKey = providerConfig.get("api-key");
+        if (apiKey == null || apiKey.contains("your-api-key-here")) {
+            throw new IllegalStateException("Please configure API Key first! See step-00-setup");
+        }
 
         return OpenAiChatModel.builder()
                 .baseUrl(providerConfig.get("base-url"))
@@ -94,11 +100,14 @@ public class ToolDemo {
 
     private static Map<String, Object> loadConfig() {
         Yaml yaml = new Yaml();
-        InputStream is = ToolDemo.class.getClassLoader()
-                .getResourceAsStream("application.yml");
-        if (is == null) {
-            throw new IllegalStateException("application.yml not found");
+        try (InputStream is = ToolDemo.class.getClassLoader()
+                .getResourceAsStream("application.yml")) {
+            if (is == null) {
+                throw new IllegalStateException("application.yml not found");
+            }
+            return yaml.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read application.yml", e);
         }
-        return yaml.load(is);
     }
 }

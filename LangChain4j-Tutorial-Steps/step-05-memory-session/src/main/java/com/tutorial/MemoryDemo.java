@@ -12,6 +12,7 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Scanner;
@@ -127,14 +128,19 @@ public class MemoryDemo {
         Map<String, Object> config = loadConfig();
         @SuppressWarnings("unchecked")
         Map<String, Object> llmConfig = (Map<String, Object>) config.get("llm");
+        if (llmConfig == null) {
+            throw new IllegalStateException("'llm' section not found in application.yml");
+        }
         String provider = (String) llmConfig.get("provider");
+        if (provider == null) {
+            throw new IllegalStateException("'llm.provider' not configured in application.yml");
+        }
         @SuppressWarnings("unchecked")
         Map<String, String> providerConfig = (Map<String, String>) llmConfig.get(provider);
 
         String apiKey = providerConfig.get("api-key");
         if (apiKey == null || apiKey.contains("your-api-key-here")) {
-            System.err.println("Please configure API Key first! See step-00-setup");
-            System.exit(1);
+            throw new IllegalStateException("Please configure API Key first! See step-00-setup");
         }
 
         return OpenAiChatModel.builder()
@@ -146,11 +152,14 @@ public class MemoryDemo {
 
     private static Map<String, Object> loadConfig() {
         Yaml yaml = new Yaml();
-        InputStream is = MemoryDemo.class.getClassLoader()
-                .getResourceAsStream("application.yml");
-        if (is == null) {
-            throw new IllegalStateException("application.yml not found");
+        try (InputStream is = MemoryDemo.class.getClassLoader()
+                .getResourceAsStream("application.yml")) {
+            if (is == null) {
+                throw new IllegalStateException("application.yml not found");
+            }
+            return yaml.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read application.yml", e);
         }
-        return yaml.load(is);
     }
 }

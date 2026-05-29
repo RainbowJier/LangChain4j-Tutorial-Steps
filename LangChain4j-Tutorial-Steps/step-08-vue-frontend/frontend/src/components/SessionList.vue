@@ -1,31 +1,30 @@
-<!-- ============================================================================
-     SessionList.vue - 会话列表组件（左侧边栏）
-     ============================================================================
-     【教学要点】
-       1. 展示所有聊天会话，支持切换和新建
-       2. 通过 useChatStore() 直接读写全局状态，无需 props/events
-       3. 使用 v-for 列表渲染，:class 动态绑定样式
-     ============================================================================ -->
-
 <template>
   <div class="session-list">
-    <!-- 顶部标题栏 + 新建按钮 -->
     <div class="session-header">
-      <span>历史对话</span>
+      <span>History</span>
       <el-button type="primary" size="small" @click="chatStore.createSession()">
-        新建
+        + New
       </el-button>
     </div>
 
-    <!-- 会话列表 -->
     <div class="session-items">
       <div
         v-for="session in chatStore.sessions"
         :key="session.id"
         :class="['session-item', { active: session.id === chatStore.currentSessionId }]"
-        @click="chatStore.selectSession(session.id)"
       >
-        <span class="session-title">{{ session.title }}</span>
+        <div class="session-info" @click="chatStore.selectSession(session.id)">
+          <span class="session-title">{{ session.title }}</span>
+        </div>
+        <el-button
+          class="session-delete"
+          size="small"
+          type="danger"
+          link
+          @click.stop="chatStore.deleteSession(session.id)"
+        >
+          ×
+        </el-button>
       </div>
     </div>
   </div>
@@ -34,10 +33,8 @@
 <script setup lang="ts">
 import { useChatStore } from '@/stores/chat'
 
-// 获取 Store 实例 —— 组件内直接使用，自动追踪依赖关系
 const chatStore = useChatStore()
 
-// 初始化：如果没有任何会话，自动创建一个
 if (chatStore.sessions.length === 0) {
   chatStore.createSession()
 }
@@ -65,11 +62,19 @@ if (chatStore.sessions.length === 0) {
 }
 
 .session-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
   margin: 2px 8px;
+  border-radius: 6px;
   transition: background-color 0.2s;
+}
+
+.session-info {
+  flex: 1;
+  cursor: pointer;
+  overflow: hidden;
 }
 
 .session-item:hover {
@@ -86,5 +91,16 @@ if (chatStore.sessions.length === 0) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: block;
+}
+
+.session-delete {
+  opacity: 0;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.session-item:hover .session-delete {
+  opacity: 1;
 }
 </style>

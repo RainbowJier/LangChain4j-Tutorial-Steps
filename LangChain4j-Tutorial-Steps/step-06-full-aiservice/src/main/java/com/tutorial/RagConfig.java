@@ -13,13 +13,9 @@ import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 import java.nio.file.Path;
 
-@Data
-@AllArgsConstructor
 public class RagConfig {
 
     private static final EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
@@ -37,8 +33,11 @@ public class RagConfig {
 
     private static void ingestDocument() throws Exception {
         DocumentParser parser = new TextDocumentParser();
-        Path docPath = Path.of(RagConfig.class.getClassLoader()
-                .getResource("knowledge-base.txt").toURI());
+        var kbUrl = RagConfig.class.getClassLoader().getResource("knowledge-base.txt");
+        if (kbUrl == null) {
+            throw new IllegalStateException("knowledge-base.txt not found in classpath");
+        }
+        Path docPath = Path.of(kbUrl.toURI());
         Document doc = FileSystemDocumentLoader.loadDocument(docPath, parser);
 
         EmbeddingStoreIngestor.builder()

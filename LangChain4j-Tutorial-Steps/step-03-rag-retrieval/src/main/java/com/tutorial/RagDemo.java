@@ -21,6 +21,7 @@ import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
@@ -70,7 +71,11 @@ public class RagDemo {
         // ===== Stage 3: Parse documents =====
         System.out.println("[3/9] Loading documents...");
         DocumentParser parser = new TextDocumentParser();
-        Path docPath = Path.of(RagDemo.class.getClassLoader().getResource("knowledge-base.txt").toURI());
+        var kbUrl = RagDemo.class.getClassLoader().getResource("knowledge-base.txt");
+        if (kbUrl == null) {
+            throw new IllegalStateException("knowledge-base.txt not found in classpath");
+        }
+        Path docPath = Path.of(kbUrl.toURI());
         Document doc = FileSystemDocumentLoader.loadDocument(docPath, parser);
         System.out.println("      Document loaded: " + docPath.getFileName());
 
@@ -153,14 +158,19 @@ public class RagDemo {
         Map<String, Object> config = loadConfig();
         @SuppressWarnings("unchecked")
         Map<String, Object> llmConfig = (Map<String, Object>) config.get("llm");
+        if (llmConfig == null) {
+            throw new IllegalStateException("'llm' section not found in application.yml");
+        }
         String provider = (String) llmConfig.get("provider");
+        if (provider == null) {
+            throw new IllegalStateException("'llm.provider' not configured in application.yml");
+        }
         @SuppressWarnings("unchecked")
         Map<String, String> providerConfig = (Map<String, String>) llmConfig.get(provider);
 
         String apiKey = providerConfig.get("api-key");
         if (apiKey == null || apiKey.contains("your-api-key-here")) {
-            System.err.println("Please configure API Key first! See step-00-setup");
-            System.exit(1);
+            throw new IllegalStateException("Please configure API Key first! See step-00-setup");
         }
 
         return OpenAiChatModel.builder()
@@ -172,11 +182,14 @@ public class RagDemo {
 
     private static Map<String, Object> loadConfig() {
         Yaml yaml = new Yaml();
-        InputStream is = RagDemo.class.getClassLoader()
-                .getResourceAsStream("application.yml");
-        if (is == null) {
-            throw new IllegalStateException("application.yml not found");
+        try (InputStream is = RagDemo.class.getClassLoader()
+                .getResourceAsStream("application.yml")) {
+            if (is == null) {
+                throw new IllegalStateException("application.yml not found");
+            }
+            return yaml.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read application.yml", e);
         }
-        return yaml.load(is);
     }
 }

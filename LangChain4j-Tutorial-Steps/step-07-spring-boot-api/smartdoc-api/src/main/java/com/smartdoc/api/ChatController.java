@@ -1,6 +1,11 @@
 package com.smartdoc.api;
 
+import com.smartdoc.api.dto.ChatHistoryItem;
 import com.smartdoc.api.dto.ChatRequest;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import com.smartdoc.chat.ChatSessionManager;
 import com.smartdoc.chat.DocAssistant;
 import dev.langchain4j.service.TokenStream;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,11 +126,27 @@ public class ChatController {
      * 获取会话历史记录
      *
      * @param sessionId 会话 ID
-     * @return 会话信息
+     * @return 历史消息列表
      */
     @GetMapping("/history/{sessionId}")
-    public Map<String, Object> getHistory(@PathVariable String sessionId) {
-        return Map.of("sessionId", sessionId);
+    public List<ChatHistoryItem> getHistory(@PathVariable String sessionId) {
+        return sessionManager.getSessionHistory(sessionId).stream()
+                .map(msg -> new ChatHistoryItem(
+                        switch (msg.type()) {
+                            case USER -> "user";
+                            case AI -> "assistant";
+                            default -> "system";
+                        },
+                        messageText(msg)
+                ))
+                .toList();
+    }
+
+    private static String messageText(ChatMessage msg) {
+        if (msg instanceof AiMessage ai) return ai.text();
+        if (msg instanceof UserMessage user) return user.singleText();
+        if (msg instanceof SystemMessage sys) return sys.text();
+        return msg.toString();
     }
 
     /**

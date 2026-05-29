@@ -6,7 +6,7 @@ llm:
 
   deepseek:
     base-url: https://api.deepseek.com/
-    api-key: sk-b7af95c17ba7497687d5477918b38d43
+    api-key: ${DEEPSEEK_API_KEY:your-api-key-here}
     model-name: deepseek-chat
 
   zhipu:

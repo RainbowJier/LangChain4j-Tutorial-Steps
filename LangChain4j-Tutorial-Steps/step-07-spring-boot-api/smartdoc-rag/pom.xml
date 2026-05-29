@@ -7,7 +7,7 @@
 
     <parent>
         <groupId>com.smartdoc</groupId>
-        <artifactId>smartdoc-agent</artifactId>
+        <artifactId>step-07-spring-boot-api</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 

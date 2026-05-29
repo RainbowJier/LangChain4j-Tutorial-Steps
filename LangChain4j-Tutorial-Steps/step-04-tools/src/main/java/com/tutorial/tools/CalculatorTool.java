@@ -28,7 +28,10 @@ public class CalculatorTool {
             case "+" -> a + b;
             case "-" -> a - b;
             case "*" -> a * b;
-            case "/" -> b != 0 ? a / b : Double.NaN;
+            case "/" -> {
+                if (b == 0) throw new ArithmeticException("Division by zero");
+                yield a / b;
+            }
             default -> throw new IllegalArgumentException("Unsupported operator: " + operator);
         };
 

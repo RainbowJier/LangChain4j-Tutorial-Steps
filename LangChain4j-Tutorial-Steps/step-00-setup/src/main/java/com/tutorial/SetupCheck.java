@@ -5,6 +5,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -27,17 +28,25 @@ public class SetupCheck {
         Map<String, Object> config = loadConfig();
         @SuppressWarnings("unchecked")
         Map<String, Object> llmConfig = (Map<String, Object>) config.get("llm");
+        if (llmConfig == null) {
+            log.error("'llm' section not found in application.yml");
+            return;
+        }
         String provider = (String) llmConfig.get("provider");
-
+        if (provider == null) {
+            log.error("'llm.provider' not configured in application.yml");
+            return;
+        }
         log.info("Configuration Provider: " + provider);
 
         @SuppressWarnings("unchecked")
         Map<String, String> providerConfig = (Map<String, String>) llmConfig.get(provider);
         String apiKey = providerConfig.get("api-key");
+        if (apiKey == null) apiKey = "";
         String modelName = providerConfig.get("model-name");
         String baseUrl = providerConfig.get("base-url");
 
-        log.info("API Key: " + apiKey.substring(0, 8) + "...");
+        log.info("API Key: " + (apiKey.length() > 8 ? apiKey.substring(0, 8) + "..." : "(not set)"));
         log.info("Model: " + modelName);
         log.info("Base URL: " + baseUrl);
 
@@ -50,7 +59,7 @@ public class SetupCheck {
                     .modelName(modelName)
                     .build();
 
-            String response = chatModel.chat("Please replay OK");
+            String response = chatModel.chat("Please reply OK");
 
             log.info("Connection successful！");
             log.info("LLM response: " + response.trim());
@@ -68,10 +77,13 @@ public class SetupCheck {
 
     private static Map<String, Object> loadConfig() {
         Yaml yaml = new Yaml();
-        InputStream is = SetupCheck.class.getClassLoader().getResourceAsStream("application.yml");
-        if (is == null) {
-            throw new IllegalStateException("application.yml not found.");
+        try (InputStream is = SetupCheck.class.getClassLoader().getResourceAsStream("application.yml")) {
+            if (is == null) {
+                throw new IllegalStateException("application.yml not found");
+            }
+            return yaml.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read application.yml", e);
         }
-        return yaml.load(is);
     }
 }

@@ -6,9 +6,10 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Scanner;
+
 
 /**
  * Step 01: Hello LLM - The simplest LLM invocation.
@@ -30,7 +31,7 @@ public class HelloLlm {
     }
 
     // ===== 方式 B 的接口（带系统消息） =====
-    @SystemMessage("You are a seasonal Java development mentor. Your response should be accurate and concise, and include code examples.")
+    @SystemMessage("You are a seasoned Java development mentor. Your response should be accurate and concise, and include code examples.")
     interface MentorAssistant {
         String chat(String message);
     }
@@ -71,13 +72,19 @@ public class HelloLlm {
 
         @SuppressWarnings("unchecked")
         Map<String, Object> llmConfig = (Map<String, Object>) config.get("llm");
+        if (llmConfig == null) {
+            throw new IllegalStateException("'llm' section not found in application.yml");
+        }
         String provider = (String) llmConfig.get("provider");
+        if (provider == null) {
+            throw new IllegalStateException("'llm.provider' not configured in application.yml");
+        }
         @SuppressWarnings("unchecked")
         Map<String, String> providerConfig = (Map<String, String>) llmConfig.get(provider);
 
         String apiKey = providerConfig.get("api-key");
         if (apiKey == null || apiKey.contains("your-api-key-here")) {
-            throw new IllegalStateException("Please configure API Key first ! refer to step-00-setup");
+            throw new IllegalStateException("Please configure API Key first! refer to step-00-setup");
         }
 
         return OpenAiChatModel.builder()
@@ -89,11 +96,13 @@ public class HelloLlm {
 
     private static Map<String, Object> loadConfig() {
         Yaml yaml = new Yaml();
-        InputStream is = HelloLlm.class.getClassLoader().getResourceAsStream("application.yml");
-        if (is == null) {
-            throw new IllegalStateException("application.yml not found.");
+        try (InputStream is = HelloLlm.class.getClassLoader().getResourceAsStream("application.yml")) {
+            if (is == null) {
+                throw new IllegalStateException("application.yml not found");
+            }
+            return yaml.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read application.yml", e);
         }
-
-        return yaml.load(is);
     }
 }
