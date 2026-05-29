@@ -8,9 +8,8 @@ import dev.langchain4j.agent.tool.Tool;
  */
 public class TaskStatusTool {
 
-    @Tool("查询任务或部署的状态。当用户问"部署进度"、"任务完成了吗"等问题时使用。")
-    public String getTaskStatus(
-            @P("任务 ID 或项目名称") String taskId) {
+    @Tool("查询任务或部署的状态。当用户问'部署进度'、'任务完成了吗'等问题时使用。")
+    public String getTaskStatus(@P("任务 ID 或项目名称") String taskId) {
         // 模拟返回任务状态
         return """
                 任务状态报告：

@@ -1,5 +1,6 @@
 package com.tutorial;
 
+import com.tutorial.config.ProviderConfig;
 import com.tutorial.tools.KnowledgeSearchTool;
 import com.tutorial.tools.TaskStatusTool;
 import dev.langchain4j.data.document.Document;
@@ -9,10 +10,12 @@ import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
@@ -25,7 +28,7 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import dev.langchain4j.store.memory.chat.ChatMemoryProvider;
+
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import org.yaml.snakeyaml.Yaml;
 
@@ -34,6 +37,8 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+
+import static com.tutorial.config.ProviderConfig.loadProviderConfig;
 
 /**
  * Step 06: 完整 AiService 装配 — 将前面所有步骤的概念整合到一个服务中。
@@ -58,12 +63,12 @@ public class FullAssistant {
     // ===== AI 服务接口（完整版） =====
     @SystemMessage("""
             你是「智能文档助手」，帮助团队查询开发手册内容和管理开发任务。
-
+            
             你的能力：
             1. 基于知识库回答开发规范相关问题（自动检索）
             2. 搜索团队知识库获取更多信息
             3. 查询任务和部署状态
-
+            
             回答要求：
             - 优先基于知识库内容回答，引用时注明条款编号
             - 知识库中没有的信息，可以搜索团队知识库补充
@@ -78,7 +83,7 @@ public class FullAssistant {
 
         // ===== 1. ChatModel + StreamingChatModel（来自 Step 01 + 02） =====
         System.out.println("[1/5] 创建 LLM 模型...");
-        Map<String, String> providerConfig = loadProviderConfig();
+        Map<String, String> providerConfig = ProviderConfig.loadProviderConfig();
         ChatModel chatModel = OpenAiChatModel.builder()
                 .baseUrl(providerConfig.get("base-url"))
                 .apiKey(providerConfig.get("api-key"))
@@ -172,16 +177,16 @@ public class FullAssistant {
             System.out.print("助手: ");
 
             assistant.chat("interactive", question)
-                .onPartialResponse(token -> System.out.print(token))
-                .onCompleteResponse(response -> {
-                    System.out.println("\n");
-                    latch.countDown();
-                })
-                .onError(error -> {
-                    System.err.println("\n错误: " + error.getMessage());
-                    latch.countDown();
-                })
-                .start();
+                    .onPartialResponse(token -> System.out.print(token))
+                    .onCompleteResponse(response -> {
+                        System.out.println("\n");
+                        latch.countDown();
+                    })
+                    .onError(error -> {
+                        System.err.println("\n错误: " + error.getMessage());
+                        latch.countDown();
+                    })
+                    .start();
 
             try {
                 latch.await();
@@ -190,28 +195,5 @@ public class FullAssistant {
             }
         }
         scanner.close();
-    }
-
-    private static Map<String, String> loadProviderConfig() {
-        Yaml yaml = new Yaml();
-        InputStream is = FullAssistant.class.getClassLoader()
-                .getResourceAsStream("application.yml");
-        if (is == null) {
-            throw new IllegalStateException("application.yml 未找到");
-        }
-        @SuppressWarnings("unchecked")
-        Map<String, Object> config = yaml.load(is);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> llmConfig = (Map<String, Object>) config.get("llm");
-        String provider = (String) llmConfig.get("provider");
-        @SuppressWarnings("unchecked")
-        Map<String, String> providerConfig = (Map<String, String>) llmConfig.get(provider);
-
-        String apiKey = providerConfig.get("api-key");
-        if (apiKey == null || apiKey.contains("your-api-key-here")) {
-            System.err.println("请先配置 API Key！参见 step-00-setup");
-            System.exit(1);
-        }
-        return providerConfig;
     }
 }

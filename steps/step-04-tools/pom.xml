@@ -11,7 +11,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>step-04-agent-tools</artifactId>
+    <artifactId>step-04-tools</artifactId>
     <name>Step 04: Agent 工具调用</name>
 
     <properties>

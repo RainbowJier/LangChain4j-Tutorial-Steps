@@ -28,7 +28,7 @@
         <module>step-01-hello-llm</module>
         <module>step-02-streaming</module>
         <module>step-03-rag-retrieval</module>
-        <module>step-04-agent-tools</module>
+        <module>step-04-tools</module>
         <module>step-05-memory-session</module>
         <module>step-06-full-aiservice</module>
     </modules>

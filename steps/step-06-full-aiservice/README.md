@@ -1,37 +1,37 @@
-# Step 06: 完整 AiService 装配
+# Step 06: Complete AiService automation
 
-## 学习目标
+## Learning Objectives
 
 - 将 Step 01-05 的所有概念整合到单个 `AiServices.builder()` 调用中
 - 理解各组件如何协同工作
 - 建立从纯 Java 到 Spring Boot 的概念桥梁
 
-## 前置条件
+## Prerequisites
 
 - 完成 [Step 01](../step-01-hello-llm/) ~ [Step 05](../step-05-memory-session/)
 
-## 核心概念
+## Core Concepts
 
-### 组件整合
+### Component Integration
 
 ```java
 DocAssistant assistant = AiServices.builder(DocAssistant.class)
-    .chatModel(chatModel)                      // Step 01: LLM 调用
-    .streamingChatModel(streamingModel)         // Step 02: 流式输出
-    .contentRetriever(retriever)                // Step 03: RAG 检索
-    .tools(knowledgeTool, taskTool)             // Step 04: Agent 工具
-    .chatMemoryProvider(memoryProvider)         // Step 05: 会话记忆
-    .build();
+        .chatModel(chatModel)                      // Step 01: LLM 调用
+        .streamingChatModel(streamingModel)         // Step 02: 流式输出
+        .contentRetriever(retriever)                // Step 03: RAG 检索
+        .tools(knowledgeTool, taskTool)             // Step 04: Agent 工具
+        .chatMemoryProvider(memoryProvider)         // Step 05: 会话记忆
+        .build();
 ```
 
-### 从 main() 到 @Configuration
+### From main() to @Configuration
 
-| 本步骤（纯 Java） | Spring Boot 等价物 |
-|------------------|-------------------|
-| `main()` 中的手动组装 | `ChatConfig.java` 的 `@Bean` 方法 |
-| `Map<String, ChatMemory>` | `ChatSessionManager.java` |
+| 本步骤（纯 Java）                         | Spring Boot 等价物                  |
+|-------------------------------------|----------------------------------|
+| `main()` 中的手动组装                     | `ChatConfig.java` 的 `@Bean` 方法   |
+| `Map<String, ChatMemory>`           | `ChatSessionManager.java`        |
 | `new AllMiniLmL6V2EmbeddingModel()` | `EmbeddingConfig.java` 的 `@Bean` |
-| `new KnowledgeSearchTool()` | `@Component` + `@Tool` |
+| `new KnowledgeSearchTool()`         | `@Component` + `@Tool`           |
 
 ## 运行方式
 
@@ -43,6 +43,7 @@ mvn compile exec:java
 ## 你会看到什么
 
 一个功能齐全的命令行聊天，支持：
+
 - RAG 检索（基于知识库回答）
 - 工具调用（搜索知识库、查询任务状态）
 - 会话记忆（记住你说过的话）
