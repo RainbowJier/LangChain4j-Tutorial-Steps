@@ -14,13 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ChatSessionManager {
 
-    private final int maxMessages;
+    @Value("${chat.max-memory-messages:20}")
+    private int maxMessages;
 
     private final Map<String, ChatMemory> sessions = new ConcurrentHashMap<>();
-
-    public ChatSessionManager(@Value("${chat.max-memory-messages:20}") int maxMessages) {
-        this.maxMessages = maxMessages;
-    }
 
     public ChatMemory getOrCreate(String sessionId) {
         return sessions.computeIfAbsent(sessionId,

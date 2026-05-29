@@ -28,5 +28,8 @@ node_modules/
 dist/
 .vite/
 
+# CodeGraph (generated index)
+.codegraph/
+
 # Logs
 logs/
