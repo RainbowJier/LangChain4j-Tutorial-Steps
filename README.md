@@ -2,7 +2,9 @@
 
 Build AI applications from scratch — designed for experienced Java developers.
 
-This project takes you through **10 progressive steps** to master LangChain4j core concepts: LLM calling, streaming output, RAG (Retrieval-Augmented Generation), Agent tool calling, session memory, and finally a complete Spring Boot + Vue 3 full-stack application.
+This project takes you through **10 progressive steps** to master LangChain4j core concepts: LLM calling, streaming
+output, RAG (Retrieval-Augmented Generation), Agent tool calling, session memory, and finally a complete Spring Boot +
+Vue 3 full-stack application.
 
 ---
 
@@ -29,28 +31,29 @@ Spring Boot  Vue Frontend  Production
 
 ## Steps Overview
 
-Each step is an **independently runnable** Maven project. Click through for detailed READMEs with core concepts, code walkthroughs, and exercises.
+Each step is an **independently runnable** Maven project. Click through for detailed READMEs with core concepts, code
+walkthroughs, and exercises.
 
-| Step | Topic | Core Concepts | Run |
-|------|-------|---------------|-----|
-| [Step 00](LangChain4j-Tutorial-Steps/step-00-setup/) | Environment Setup | API Key configuration, provider selection, connectivity verification | `mvn compile exec:java` |
-| [Step 01](LangChain4j-Tutorial-Steps/step-01-hello-llm/) | Hello LLM | `ChatModel`, `AiServices`, `@SystemMessage`, stateless LLM | `mvn compile exec:java` |
-| [Step 02](LangChain4j-Tutorial-Steps/step-02-streaming/) | Streaming Output | `StreamingChatModel`, `TokenStream` callbacks (`onPartialResponse`, `onCompleteResponse`, `onError`) | `mvn compile exec:java` |
-| [Step 03](LangChain4j-Tutorial-Steps/step-03-rag-retrieval/) | RAG Basics | Embedding, vector store, document chunking, `ContentRetriever`, overlap strategy | `mvn compile exec:java` |
-| [Step 04](LangChain4j-Tutorial-Steps/step-04-tools/) | Agent Tools | `@Tool` / `@P` annotations, Function Calling workflow, tool registration | `mvn compile exec:java` |
-| [Step 05](LangChain4j-Tutorial-Steps/step-05-memory-session/) | Session Memory | `ChatMemory`, `@MemoryId`, `ChatMemoryProvider`, multi-session isolation | `mvn compile exec:java` |
-| [Step 06](LangChain4j-Tutorial-Steps/step-06-full-aiservice/) | Full AiService | `AiServices.builder()` integrating all components (RAG + Tools + Memory + Streaming) | `mvn compile exec:java` |
-| [Step 07](LangChain4j-Tutorial-Steps/step-07-spring-boot-api/) | Spring Boot API | Multi-module architecture, `@Bean` declarative assembly, SSE endpoints, document upload | `mvn spring-boot:run` |
-| [Step 08](LangChain4j-Tutorial-Steps/step-08-vue-frontend/) | Vue 3 Frontend | Composition API, Pinia state management, SSE client, Markdown rendering, Element Plus | `npm run dev` |
-| [Step 09](LangChain4j-Tutorial-Steps/step-09-production/) | Production Optimization | Vector DB migration (Milvus), timeout/retry, circuit breaker, monitoring, security | `mvn compile exec:java` |
+| Step                                                           | Topic                   | Core Concepts                                                                                        | Run                     |
+|----------------------------------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------|-------------------------|
+| [Step 00](LangChain4j-Tutorial-Steps/step-00-setup/)           | Environment Setup       | API Key configuration, provider selection, connectivity verification                                 | `mvn compile exec:java` |
+| [Step 01](LangChain4j-Tutorial-Steps/step-01-hello-llm/)       | Hello LLM               | `ChatModel`, `AiServices`, `@SystemMessage`, stateless LLM                                           | `mvn compile exec:java` |
+| [Step 02](LangChain4j-Tutorial-Steps/step-02-streaming/)       | Streaming Output        | `StreamingChatModel`, `TokenStream` callbacks (`onPartialResponse`, `onCompleteResponse`, `onError`) | `mvn compile exec:java` |
+| [Step 03](LangChain4j-Tutorial-Steps/step-03-rag-retrieval/)   | RAG Basics              | Embedding, vector store, document chunking, `ContentRetriever`, overlap strategy                     | `mvn compile exec:java` |
+| [Step 04](LangChain4j-Tutorial-Steps/step-04-tools/)           | Agent Tools             | `@Tool` / `@P` annotations, Function Calling workflow, tool registration                             | `mvn compile exec:java` |
+| [Step 05](LangChain4j-Tutorial-Steps/step-05-memory-session/)  | Session Memory          | `ChatMemory`, `@MemoryId`, `ChatMemoryProvider`, multi-session isolation                             | `mvn compile exec:java` |
+| [Step 06](LangChain4j-Tutorial-Steps/step-06-full-aiservice/)  | Full AiService          | `AiServices.builder()` integrating all components (RAG + Tools + Memory + Streaming)                 | `mvn compile exec:java` |
+| [Step 07](LangChain4j-Tutorial-Steps/step-07-spring-boot-api/) | Spring Boot API         | Multi-module architecture, `@Bean` declarative assembly, SSE endpoints, document upload              | `mvn spring-boot:run`   |
+| [Step 08](LangChain4j-Tutorial-Steps/step-08-vue-frontend/)    | Vue 3 Frontend          | Composition API, Pinia state management, SSE client, Markdown rendering, Element Plus                | `npm run dev`           |
+| [Step 09](LangChain4j-Tutorial-Steps/step-09-production/)      | Production Optimization | Vector DB migration (Milvus), timeout/retry, circuit breaker, monitoring, security                   | `mvn compile exec:java` |
 
 ### Learning path recommendations
 
-| Path | Steps | Time |
-|------|-------|------|
+| Path                            | Steps                       | Time     |
+|---------------------------------|-----------------------------|----------|
 | **Core concepts** (recommended) | 00 → 01 → 03 → 04 → 05 → 06 | ~2 hours |
-| **Full-stack** | Core + 07 + 08 | ~4 hours |
-| **Production** | Full-stack + 09 | ~5 hours |
+| **Full-stack**                  | Core + 07 + 08              | ~4 hours |
+| **Production**                  | Full-stack + 09             | ~5 hours |
 
 ---
 
@@ -80,17 +83,19 @@ llm:
     model-name: glm-4-flash
 ```
 
-> **Tip**: Use the `LLM_API_KEY` environment variable instead of hardcoding keys. The config falls back to the env var when the placeholder is present.
+> **Tip**: Use the `LLM_API_KEY` environment variable instead of hardcoding keys. The config falls back to the env var
+> when the placeholder is present.
 
 ### Provider Comparison
 
-| Provider | Base URL | Free Tier | Best For |
-|----------|----------|-----------|----------|
-| **Zhipu GLM** | `open.bigmodel.cn/api/paas/v4/` | Yes (registration) | Chinese-language tasks, stable API |
-| **DeepSeek** | `api.deepseek.com` | Yes (limited) | Code generation, reasoning |
-| **OpenAI** | `api.openai.com` | No | General-purpose, broadest compatibility |
+| Provider      | Base URL                        | Free Tier          | Best For                                |
+|---------------|---------------------------------|--------------------|-----------------------------------------|
+| **Zhipu GLM** | `open.bigmodel.cn/api/paas/v4/` | Yes (registration) | Chinese-language tasks, stable API      |
+| **DeepSeek**  | `api.deepseek.com`              | Yes (limited)      | Code generation, reasoning              |
+| **OpenAI**    | `api.openai.com`                | No                 | General-purpose, broadest compatibility |
 
-Zhipu GLM and DeepSeek both use OpenAI-compatible APIs, so `OpenAiChatModel` works with all of them — just change the `base-url` and `api-key`.
+Zhipu GLM and DeepSeek both use OpenAI-compatible APIs, so `OpenAiChatModel` works with all of them — just change the
+`base-url` and `api-key`.
 
 ### Run Your First Step
 
@@ -125,17 +130,17 @@ mvn compile            # Compile all pure-Java steps (00–06)
 
 ## Technology Stack
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Backend Framework | Spring Boot + Java 17 | 3.5.0 |
-| AI Framework | LangChain4j | 1.13.0 |
-| Frontend | Vue 3 + TypeScript + Vite | 3.5 / 8.0 |
-| UI Library | Element Plus | 2.13 |
-| State Management | Pinia | 3.0 |
-| Embedding Model | All-MiniLM-L6-v2 (ONNX) | Local inference |
-| Vector Store (dev) | InMemoryEmbeddingStore | Built-in |
-| Vector Store (prod) | Milvus / pgvector / Weaviate | External |
-| LLM Providers | Zhipu GLM / DeepSeek / OpenAI | Swappable |
+| Layer               | Technology                    | Version         |
+|---------------------|-------------------------------|-----------------|
+| Backend Framework   | Spring Boot + Java 17         | 3.5.0           |
+| AI Framework        | LangChain4j                   | 1.13.0          |
+| Frontend            | Vue 3 + TypeScript + Vite     | 3.5 / 8.0       |
+| UI Library          | Element Plus                  | 2.13            |
+| State Management    | Pinia                         | 3.0             |
+| Embedding Model     | All-MiniLM-L6-v2 (ONNX)       | Local inference |
+| Vector Store (dev)  | InMemoryEmbeddingStore        | Built-in        |
+| Vector Store (prod) | Milvus / pgvector / Weaviate  | External        |
+| LLM Providers       | Zhipu GLM / DeepSeek / OpenAI | Swappable       |
 
 ---
 
@@ -165,18 +170,20 @@ Step 09:  Production — Milvus, monitoring, security
 
 ### Key Design Principle: Concept Bridge
 
-Step 06 (pure Java) and Step 07 (Spring Boot) are **structurally identical** — every component in `main()` has a direct `@Bean` counterpart:
+Step 06 (pure Java) and Step 07 (Spring Boot) are **structurally identical** — every component in `main()` has a direct
+`@Bean` counterpart:
 
-| Step 06 (Plain Java) | Step 07 (Spring Boot) |
-|----------------------|-----------------------|
-| `new ZhipuAiChatModel(...)` | `@Bean ChatModel` |
-| `new InMemoryEmbeddingStore()` | `@Bean EmbeddingStore` |
+| Step 06 (Plain Java)               | Step 07 (Spring Boot)               |
+|------------------------------------|-------------------------------------|
+| `new ZhipuAiChatModel(...)`        | `@Bean ChatModel`                   |
+| `new InMemoryEmbeddingStore()`     | `@Bean EmbeddingStore`              |
 | `EmbeddingStoreIngestor.builder()` | `@Service DocumentIngestionService` |
-| `ConcurrentHashMap` session map | `@Component ChatSessionManager` |
-| `AiServices.builder()` | `@Configuration ChatConfig` |
-| `main()` direct call | `@RestController` REST/SSE API |
+| `ConcurrentHashMap` session map    | `@Component ChatSessionManager`     |
+| `AiServices.builder()`             | `@Configuration ChatConfig`         |
+| `main()` direct call               | `@RestController` REST/SSE API      |
 
-This lets you learn the AI concepts without Spring Boot complexity first, then see how the same code maps to production-grade infrastructure.
+This lets you learn the AI concepts without Spring Boot complexity first, then see how the same code maps to
+production-grade infrastructure.
 
 ---
 
@@ -229,14 +236,14 @@ LangChain4j-Tutorial-Steps/
 
 ## Troubleshooting
 
-| Problem | Likely Cause | Solution |
-|---------|-------------|----------|
-| `Connection refused` or `401` | Missing or invalid API Key | Set `LLM_API_KEY` env var or check `application.yml` |
-| Empty response from LLM | Provider model name mismatch | Verify `model-name` matches the provider's available models |
-| Step 03: `knowledge-base.txt not found` | Wrong working directory | Run `mvn` from the step directory, not from root |
-| Step 07: `Could not find smartdoc-llm` | Parent POM not installed | Run `mvn clean install -DskipTests` from `step-07-spring-boot-api/` first |
-| Step 08: CORS errors | Backend not running | Start Step 07 backend before the frontend dev server |
-| Streaming nothing printed | `CountDownLatch` missing | Remember to call `.start()` and wait for completion |
+| Problem                                 | Likely Cause                 | Solution                                                                  |
+|-----------------------------------------|------------------------------|---------------------------------------------------------------------------|
+| `Connection refused` or `401`           | Missing or invalid API Key   | Set `LLM_API_KEY` env var or check `application.yml`                      |
+| Empty response from LLM                 | Provider model name mismatch | Verify `model-name` matches the provider's available models               |
+| Step 03: `knowledge-base.txt not found` | Wrong working directory      | Run `mvn` from the step directory, not from root                          |
+| Step 07: `Could not find smartdoc-llm`  | Parent POM not installed     | Run `mvn clean install -DskipTests` from `step-07-spring-boot-api/` first |
+| Step 08: CORS errors                    | Backend not running          | Start Step 07 backend before the frontend dev server                      |
+| Streaming nothing printed               | `CountDownLatch` missing     | Remember to call `.start()` and wait for completion                       |
 
 ---
 
