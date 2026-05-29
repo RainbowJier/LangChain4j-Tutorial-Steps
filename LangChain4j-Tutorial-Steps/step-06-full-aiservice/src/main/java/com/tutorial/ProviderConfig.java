@@ -1,6 +1,5 @@
-package com.tutorial.config;
+package com.tutorial;
 
-import com.tutorial.FullAssistant;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
@@ -17,7 +16,7 @@ public class ProviderConfig {
 
         String apiKey = providerConfig.get("api-key");
         if (apiKey == null || apiKey.contains("your-api-key-here")) {
-            System.err.println("请先配置 API Key！参见 step-00-setup");
+            System.err.println("Please configure API Key first! See step-00-setup");
             System.exit(1);
         }
         return providerConfig;
