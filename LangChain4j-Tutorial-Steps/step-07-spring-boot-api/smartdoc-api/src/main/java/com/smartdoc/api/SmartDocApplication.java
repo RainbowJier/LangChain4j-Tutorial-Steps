@@ -7,5 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SmartDocApplication {
     public static void main(String[] args) {
         SpringApplication.run(SmartDocApplication.class, args);
+        System.out.println("(♥◠‿◠)ノ゙  SmartDoc 启动成功   ლ(´ڡ`ლ)゙");
     }
 }
