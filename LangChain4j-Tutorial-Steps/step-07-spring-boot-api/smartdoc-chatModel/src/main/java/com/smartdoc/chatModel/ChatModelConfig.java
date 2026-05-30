@@ -1,4 +1,4 @@
-package com.smartdoc.llm;
+package com.smartdoc.chatModel;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -15,10 +15,10 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(LlmProperties.class)
+@EnableConfigurationProperties(ChatModelProperties.class)
 public class ChatModelConfig {
 
-    private final LlmProperties llmProperties;
+    private final ChatModelProperties chatModelProperties;
 
     /**
      * Create the synchronous ChatModel Bean.
@@ -26,18 +26,19 @@ public class ChatModelConfig {
      */
     @Bean
     public ChatModel chatLanguageModel() {
-        LlmProperties.ProviderConfig config = llmProperties.getActiveConfig();
-        String provider = llmProperties.getProvider();
+        ChatModelProperties.ProviderConfig config = chatModelProperties.getActiveConfig();
+        String provider = chatModelProperties.getProvider();
         log.info("Initializing ChatModel with provider={}, baseUrl={}, model={}",
                 provider, config.getBaseUrl(), config.getModelName());
 
-        if ("zhipu".equals(provider)) {
+        if (ProviderEnum.ZHIPU.getCode().equals(provider)) {
             return ZhipuAiChatModel.builder()
                     .apiKey(config.getApiKey())
                     .model(config.getModelName())
                     .build();
         }
 
+        // opeanai is compatible with deepseek.
         return OpenAiChatModel.builder()
                 .baseUrl(config.getBaseUrl())
                 .apiKey(config.getApiKey())
@@ -51,18 +52,19 @@ public class ChatModelConfig {
      */
     @Bean
     public StreamingChatModel streamingChatModel() {
-        LlmProperties.ProviderConfig config = llmProperties.getActiveConfig();
-        String provider = llmProperties.getProvider();
+        ChatModelProperties.ProviderConfig config = chatModelProperties.getActiveConfig();
+        String provider = chatModelProperties.getProvider();
         log.info("Initializing StreamingChatModel with provider={}, baseUrl={}, model={}",
                 provider, config.getBaseUrl(), config.getModelName());
 
-        if ("zhipu".equals(provider)) {
+        if (ProviderEnum.ZHIPU.getCode().equals(provider)) {
             return ZhipuAiStreamingChatModel.builder()
                     .apiKey(config.getApiKey())
                     .model(config.getModelName())
                     .build();
         }
 
+        // opeanai is compatible with deepseek.
         return OpenAiStreamingChatModel.builder()
                 .baseUrl(config.getBaseUrl())
                 .apiKey(config.getApiKey())
