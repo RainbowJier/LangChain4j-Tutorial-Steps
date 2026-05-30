@@ -1,7 +1,7 @@
 package com.smartdoc.api;
 
-import com.smartdoc.api.dto.ChatHistoryItem;
-import com.smartdoc.api.dto.ChatReq;
+import com.smartdoc.api.dto.req.ChatHistoryItemReq;
+import com.smartdoc.api.dto.req.ChatReq;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -90,9 +90,9 @@ public class ChatController {
     }
 
     @GetMapping("/history/{sessionId}")
-    public List<ChatHistoryItem> getHistory(@PathVariable String sessionId) {
+    public List<ChatHistoryItemReq> getHistory(@PathVariable String sessionId) {
         return sessionManager.getSessionHistory(sessionId).stream()
-                .map(msg -> new ChatHistoryItem(
+                .map(msg -> new ChatHistoryItemReq(
                         switch (msg.type()) {
                             case USER -> "user";
                             case AI -> "assistant";

@@ -1,4 +1,4 @@
-package com.smartdoc.api.dto;
+package com.smartdoc.api.dto.req;
 
 /**
  * 聊天请求 DTO（数据传输对象）
