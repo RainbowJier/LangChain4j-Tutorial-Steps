@@ -42,8 +42,8 @@ walkthroughs, and exercises.
 | [Step 04](LangChain4j-Tutorial-Steps/step-04-tools/)           | Agent Tools             | `@Tool` / `@P` annotations, Function Calling workflow, tool registration                             | `mvn compile exec:java` |
 | [Step 05](LangChain4j-Tutorial-Steps/step-05-memory-session/)  | Session Memory          | `ChatMemory`, `@MemoryId`, `ChatMemoryProvider`, multi-session isolation                             | `mvn compile exec:java` |
 | [Step 06](LangChain4j-Tutorial-Steps/step-06-full-aiservice/)  | Full AiService          | `AiServices.builder()` integrating all components (RAG + Tools + Memory + Streaming)                 | `mvn compile exec:java` |
-| [Step 07](LangChain4j-Tutorial-Steps/step-07-spring-boot-api/) | Spring Boot API         | Multi-module architecture, `@Bean` declarative assembly, SSE endpoints, document upload              | `mvn spring-boot:run`   |
-| [Step 08](LangChain4j-Tutorial-Steps/step-08-vue-frontend/)    | Vue 3 Frontend          | Composition API, Pinia state management, SSE client, Markdown rendering, Element Plus                | `npm run dev`           |
+| [Step 07](smartdoc-backend/) | Spring Boot API         | Multi-module architecture, `@Bean` declarative assembly, SSE endpoints, document upload              | `mvn spring-boot:run`   |
+| [Step 08](smartdoc-frontend/)    | Vue 3 Frontend          | Composition API, Pinia state management, SSE client, Markdown rendering, Element Plus                | `npm run dev`           |
 
 ### Learning path recommendations
 
@@ -191,7 +191,7 @@ cd LangChain4j-Tutorial-Steps
 mvn compile
 ```
 
-This compiles all pure-Java modules (00–06). Step 07 has its own parent POM under `step-07-spring-boot-api`.
+This compiles all pure-Java modules (00–06). Step 07 has its own parent POM under `smartdoc-backend`.
 
 ### Code Conventions
 
@@ -216,13 +216,13 @@ LangChain4j-Tutorial-Steps/
 ├── step-04-tools/                   # Agent tool calling
 ├── step-05-memory-session/          # Conversation memory
 ├── step-06-full-aiservice/          # Full integration
-├── step-07-spring-boot-api/         # Spring Boot multi-module
+├── smartdoc-backend/               # Spring Boot multi-module
 │   ├── smartdoc-llm/                #   LLM provider config
 │   ├── smartdoc-rag/                #   RAG pipeline
 │   ├── smartdoc-tools/              #   Agent tools
 │   ├── smartdoc-chat/               #   AiService assembly
 │   └── smartdoc-api/                #   REST controllers
-└── step-08-vue-frontend/            # Vue 3 frontend
+└── smartdoc-frontend/              # Vue 3 frontend
     └── frontend/                    #   Vite + Vue 3 + Pinia
 ```
 
@@ -235,7 +235,7 @@ LangChain4j-Tutorial-Steps/
 | `Connection refused` or `401`           | Missing or invalid API Key   | Set `LLM_API_KEY` env var or check `application.yml`                      |
 | Empty response from LLM                 | Provider model name mismatch | Verify `model-name` matches the provider's available models               |
 | Step 03: `knowledge-base.txt not found` | Wrong working directory      | Run `mvn` from the step directory, not from root                          |
-| Step 07: `Could not find smartdoc-llm`  | Parent POM not installed     | Run `mvn clean install -DskipTests` from `step-07-spring-boot-api/` first |
+| Step 07: `Could not find smartdoc-llm`  | Parent POM not installed     | Run `mvn clean install -DskipTests` from `smartdoc-backend/` first |
 | Step 08: CORS errors                    | Backend not running          | Start Step 07 backend before the frontend dev server                      |
 | Streaming nothing printed               | `CountDownLatch` missing     | Remember to call `.start()` and wait for completion                       |
 

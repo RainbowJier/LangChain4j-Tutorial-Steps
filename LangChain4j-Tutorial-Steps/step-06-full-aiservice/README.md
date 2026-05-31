@@ -56,4 +56,4 @@ mvn compile exec:java
 
 ## 下一步
 
-[Step 07: Spring Boot REST API](../step-07-spring-boot-api/) — 把 main() 重构为 Spring Boot 多模块架构
+[Step 07: Spring Boot REST API](../../smartdoc-backend/) — 把 main() 重构为 Spring Boot 多模块架构

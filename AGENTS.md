@@ -11,12 +11,12 @@ LangChain4j progressive tutorial - 10 independently runnable steps teaching AI a
 - **Constraint**: Each step must run independently - never break this
 
 ### Step 07 (Spring Boot Multi-Module)
-- **Required order**: `cd steps/step-07-spring-boot-api && mvn clean install` then `cd smartdoc-api && mvn spring-boot:run`
+- **Required order**: `cd smartdoc-backend && mvn clean install` then `cd smartdoc-api && mvn spring-boot:run`
 - **Do NOT skip parent build** - modules depend on it
 - **5 modules**: smartdoc-api (main), smartdoc-chat, smartdoc-tools, smartdoc-rag, smartdoc-llm
 
 ### Step 08 (Vue Frontend)
-- **Location**: `steps/step-08-vue-frontend/frontend`
+- **Location**: `smartdoc-frontend/frontend`
 - **Run**: `npm install && npm run dev`
 
 ### Final/ Complete Project
