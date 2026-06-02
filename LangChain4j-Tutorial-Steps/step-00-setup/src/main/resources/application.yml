@@ -9,7 +9,7 @@ llm:
     api-key: ${DEEPSEEK_API_KEY:your-api-key-here}
     model-name: deepseek-chat
 
-  zhipu:
-    base-url: https://open.bigmodel.cn/api/paas/v4/
+   zhipu:
+    base-url: https://open.bigmodel.cn/api/coding/paas/v4/
     api-key: ${LLM_API_KEY:your-api-key-here}
-    model-name: glm-4-flash
+    model-name: glm-4.7
