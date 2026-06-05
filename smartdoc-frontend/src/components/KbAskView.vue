@@ -1,5 +1,5 @@
 <template>
-  <div class="ask-view">
+  <div ref="askViewRef" class="ask-view">
     <div ref="scrollRef" class="ask-scroll">
       <div v-if="chatStore.currentMessages.length === 0" class="ask-empty">
         <div class="empty-icon">
@@ -168,6 +168,7 @@
 
 <script lang="ts" setup>
 import {ref, computed, watch, nextTick, onMounted, onUnmounted} from 'vue'
+import {gsap} from 'gsap'
 import {useChatStore} from '@/stores/chat'
 import type {ChatMessage, KbSourceRef} from '@/types'
 import MarkdownIt from 'markdown-it'
@@ -218,6 +219,8 @@ const inputRef = ref<HTMLInputElement>()
 const inputText = ref('')
 const inputFocused = ref(false)
 const openSources = ref(new Set<string>())
+const askViewRef = ref<HTMLElement>()
+let askCtx: gsap.Context | null = null
 
 const suggestions = [
   'How to configure Spring Boot datasource?',
@@ -296,6 +299,25 @@ const md = new MarkdownIt({
   }
 })
 
+const defaultLinkOpen = md.renderer.rules.link_open ||
+    ((tokens: any, idx: any, options: any, _env: any, self: any) => self.renderToken(tokens, idx, options))
+md.renderer.rules.link_open = (tokens: any, idx: any, options: any, env: any, self: any) => {
+  tokens[idx].attrSet('target', '_blank')
+  tokens[idx].attrSet('rel', 'noopener noreferrer')
+  return defaultLinkOpen(tokens, idx, options, env, self)
+}
+
+const defaultTableOpen = md.renderer.rules.table_open ||
+    ((tokens: any, idx: any, options: any, _env: any, self: any) => self.renderToken(tokens, idx, options))
+md.renderer.rules.table_open = (tokens: any, idx: any, options: any, env: any, self: any) => {
+  return '<div class="table-scroll">' + defaultTableOpen(tokens, idx, options, env, self)
+}
+const defaultTableClose = md.renderer.rules.table_close ||
+    ((_tokens: any, _idx: any, _options: any, _env: any, _self: any) => '</table>')
+md.renderer.rules.table_close = (tokens: any, idx: any, options: any, env: any, self: any) => {
+  return defaultTableClose(tokens, idx, options, env, self) + '</div>'
+}
+
 const htmlCache = new Map<string, string>()
 
 function getRendered(msg: ChatMessage): string {
@@ -325,7 +347,7 @@ function preprocessMermaid(definition: string): string {
     if (!t || t.startsWith('%%')) continue
     t = t.replace(/\b(flowchart|graph)\s*(TD|TB|LR|BT|RL)\b/gi, '$1 $2')
     t = t.replace(/\b(direction)\s*(TB|BT|LR|RL|TD)\b/gi, '$1 $2')
-    t = t.replace(/\bsubgraph\s*([A-Za-z0-9_\u4e00-\u9fff\[")])/gi, 'subgraph $1')
+    t = t.replace(/\bsubgraph\s*([A-Za-z0-9_\u4e00-\u9fff[")])/gi, 'subgraph $1')
     t = t.replace(/\bclassDef\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(fill|stroke|color|font-size|fontFamily|fontStyle|stroke-width|stroke-dasharray|border-radius)/gi, 'classDef $1 $2')
     if (/^\s*class\s*[A-Z]/.test(t) && !/^\s*classDef/.test(t)) {
       const s = t.replace(/^\s*class\s+/, 'class')
@@ -377,15 +399,12 @@ function sanitize(text: string): string {
   return c % 2 !== 0 ? text + '\n```' : text
 }
 
-function fixListMarkers(text: string): string {
-  return text.replace(/^([-+])(?![\s+\-*#\d])/gm, '$1 ')
-}
-
 function normalize(text: string): string {
-  return fixListMarkers(text)
+  return text
     .replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
     .replace(/([^\n])(\s*#{2,6}\s)/g, '$1\n\n$2')
-    .replace(/([^\n])(\s*(?:[-*+]\s|(?:\d+\.)\s))/g, '$1\n$2')
+    .replace(/([^\n])(\s*[-+])(\s)/g, '$1\n$2$3')
+    .replace(/([^\n])(\s*\d+\.)(?!\d)(?<!\d+\.\d+\.)(\s)/g, '$1\n$2$3')
     .replace(/([^\n])(\s*`{3,})/g, '$1\n\n$2')
     .replace(/(`{3,}[a-z]*\n?)([^\n])/g, '$1\n$2')
 }
@@ -591,9 +610,17 @@ onMounted(() => {
   if (!scrollRef.value) return
   scrollRef.value.addEventListener('click', handleCopyClick)
   scrollRef.value.addEventListener('click', handleMermaidClick)
+
+  askCtx = gsap.context(() => {
+    const tl = gsap.timeline({defaults: {ease: 'power3.out', duration: 0.45}})
+    tl.from('.ask-empty', {autoAlpha: 0, y: 20, duration: 0.4}, 0.1)
+      .from('.ask-input-shell', {autoAlpha: 0, y: 14, duration: 0.35}, 0.3)
+      .from('.ask-input-footer', {autoAlpha: 0, y: 8, duration: 0.3}, 0.45)
+  }, askViewRef.value)
 })
 
 onUnmounted(() => {
+  askCtx?.revert()
   if (!scrollRef.value) return
   scrollRef.value.removeEventListener('click', handleCopyClick)
   scrollRef.value.removeEventListener('click', handleMermaidClick)
@@ -957,6 +984,44 @@ onUnmounted(() => {
   border-radius: 0 8px 8px 0;
   color: #474747;
   font-size: 13px;
+}
+.markdown-body :deep(.table-scroll) {
+  width: 100%;
+  overflow-x: auto;
+  margin: 14px 0;
+  border-radius: 8px;
+  border: 1px solid #e8e8ed;
+}
+.markdown-body :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 400px;
+}
+.markdown-body :deep(thead) {
+  background: #f5f5f7;
+}
+.markdown-body :deep(th) {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  color: #707070;
+  border-bottom: 1px solid #e8e8ed;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.markdown-body :deep(td) {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8e8ed;
+  color: #1d1d1f;
+}
+.markdown-body :deep(tr:last-child td) {
+  border-bottom: none;
+}
+.markdown-body :deep(tr:hover td) {
+  background: #f5f5f7;
 }
 .markdown-body :deep(code:not(.hljs)) {
   font-family: 'SF Mono', 'JetBrains Mono', monospace;

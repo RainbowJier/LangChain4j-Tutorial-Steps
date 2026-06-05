@@ -61,5 +61,9 @@
       "url": "https://mcp.draw.io/mcp",
       "enabled": true
     }
+  },
+  "tool_output": {
+    "max_lines": 80,
+    "max_bytes": 8192
   }
 }

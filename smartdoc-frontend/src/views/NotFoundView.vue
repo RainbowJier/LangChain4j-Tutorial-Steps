@@ -1,6 +1,6 @@
 <template>
-  <div class="not-found-page">
-    <div class="nf-content">
+  <div ref="nfPage" class="not-found-page">
+    <div ref="nfContent" class="nf-content">
       <div class="nf-icon">
         <svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
              viewBox="0 0 24 24" width="20">
@@ -24,6 +24,30 @@
   </div>
 </template>
 
+<script lang="ts" setup>
+import {ref, onMounted, onUnmounted} from 'vue'
+import {gsap} from 'gsap'
+
+const nfPage = ref<HTMLElement>()
+const nfContent = ref<HTMLElement>()
+let ctx: gsap.Context | null = null
+
+onMounted(() => {
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline({defaults: {ease: 'power3.out', duration: 0.5}})
+    tl.from('.nf-icon', {autoAlpha: 0, scale: 0.6, duration: 0.4}, 0)
+      .from('.nf-code', {autoAlpha: 0, y: 16}, 0.15)
+      .from('.nf-title', {autoAlpha: 0, y: 12}, 0.25)
+      .from('.nf-desc', {autoAlpha: 0, y: 12}, 0.32)
+      .from('.nf-link', {autoAlpha: 0, y: 10}, 0.4)
+  }, nfPage.value)
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
+</script>
+
 <style scoped>
 .not-found-page {
   display: flex;
@@ -40,7 +64,6 @@
   flex-direction: column;
   align-items: center;
   max-width: 360px;
-  animation: fadeInUp var(--duration-primary) var(--ease-primary) both;
 }
 
 .nf-icon {

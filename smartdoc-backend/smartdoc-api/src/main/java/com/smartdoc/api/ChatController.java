@@ -63,6 +63,8 @@ public class ChatController {
 
                 tokenStream
                         .onPartialResponse(token -> {
+                            System.out.print(token);
+                            System.out.flush();
                             if (cancelled.get()) return;
                             try {
                                 emitter.send(SseEmitter.event().data(token));
@@ -72,6 +74,7 @@ public class ChatController {
                             }
                         })
                         .onCompleteResponse(response -> {
+                            System.out.println();
                             if (cancelled.get()) return;
                             try {
                                 emitter.send(SseEmitter.event().data("[DONE]"));

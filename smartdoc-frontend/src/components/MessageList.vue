@@ -198,6 +198,7 @@
 
 <script lang="ts" setup>
 import {ref, watch, nextTick, onMounted, onUnmounted} from 'vue'
+import {gsap} from 'gsap'
 import {useChatStore} from '@/stores/chat'
 import type {ChatMessage} from '@/types'
 import MarkdownIt from 'markdown-it'
@@ -325,7 +326,8 @@ function normalizeMarkdown(text: string): string {
   return text
       .replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
       .replace(/([^\n])(\s*#{2,6}\s)/g, '$1\n\n$2')
-      .replace(/([^\n])(\s*(?:[-*+]\s|(?:\d+\.)\s))/g, '$1\n$2')
+      .replace(/([^\n])(\s*[-+])(\s)/g, '$1\n$2$3')
+      .replace(/([^\n])(\s*\d+\.)(?!\d)(?<!\d+\.\d+\.)(\s)/g, '$1\n$2$3')
       .replace(/([^\n])(\s*`{3,})/g, '$1\n\n$2')
       .replace(/(`{3,}[a-z]*\n?)([^\n])/g, '$1\n$2')
 }
@@ -411,7 +413,7 @@ function preprocessMermaid(definition: string): string {
     if (!t || t.startsWith('%%')) continue
     t = t.replace(/\b(flowchart|graph)\s*(TD|TB|LR|BT|RL)\b/gi, '$1 $2')
     t = t.replace(/\b(direction)\s*(TB|BT|LR|RL|TD)\b/gi, '$1 $2')
-    t = t.replace(/\bsubgraph\s*([A-Za-z0-9_\u4e00-\u9fff\[")])/gi, 'subgraph $1')
+    t = t.replace(/\bsubgraph\s*([A-Za-z0-9_\u4e00-\u9fff[")])/gi, 'subgraph $1')
     t = t.replace(/\bclassDef\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(fill|stroke|color|font-size|fontFamily|fontStyle|stroke-width|stroke-dasharray|border-radius)/gi, 'classDef $1 $2')
     if (/^\s*class\s*[A-Z]/.test(t) && !/^\s*classDef/.test(t)) {
       const s = t.replace(/^\s*class\s+/, 'class')
@@ -709,13 +711,81 @@ function downloadModalPng() {
   if (activeZoomSvg.value) triggerPngDownload(activeZoomSvg.value, 'mermaid-diagram.png')
 }
 
+let animCtx: gsap.Context | null = null
+
+function animateWelcome() {
+  const welcomeEl = listRef.value?.querySelector('.welcome')
+  if (!welcomeEl) return
+  animCtx = gsap.context(() => {
+    const tl = gsap.timeline({defaults: {ease: 'power3.out', duration: 0.5}})
+    tl.from('.welcome-icon', {autoAlpha: 0, scale: 0.7, duration: 0.4}, 0)
+      .from('.welcome-title', {autoAlpha: 0, y: 16}, 0.15)
+      .from('.welcome-sub', {autoAlpha: 0, y: 12}, 0.25)
+      .from('.quick-card', {autoAlpha: 0, y: 20, stagger: 0.08}, 0.35)
+
+    document.querySelectorAll('.quick-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        gsap.to(card, {scale: 1.02, borderColor: 'var(--color-azure)', duration: 0.2, ease: 'power1.out'})
+        gsap.to(card.querySelector('.quick-card-arrow'), {x: 4, duration: 0.2, ease: 'power1.out'})
+      })
+      card.addEventListener('mouseleave', () => {
+        gsap.to(card, {scale: 1, borderColor: 'var(--color-silver-mist)', duration: 0.2, ease: 'power1.out'})
+        gsap.to(card.querySelector('.quick-card-arrow'), {x: 0, duration: 0.2, ease: 'power1.out'})
+      })
+    })
+  }, welcomeEl)
+}
+
+function animateNewMessages() {
+  const blocks = listRef.value?.querySelectorAll('.msg-block:not(.msg-animated)')
+  if (!blocks || blocks.length === 0) return
+  gsap.from(blocks, {
+    autoAlpha: 0,
+    y: 16,
+    scale: 0.98,
+    duration: 0.4,
+    ease: 'power2.out',
+    stagger: 0.08,
+    onComplete: () => {
+      blocks.forEach(el => el.classList.add('msg-animated'))
+    }
+  })
+}
+
+watch(
+  () => chatStore.currentMessages.length,
+  (newLen, oldLen) => {
+    if (newLen > 0 && oldLen === 0) {
+      nextTick(() => animateNewMessages())
+    } else if (newLen > oldLen) {
+      nextTick(() => animateNewMessages())
+    }
+  }
+)
+
+watch(
+  () => chatStore.currentSessionId,
+  () => {
+    nextTick(() => {
+      const welcomeEl = listRef.value?.querySelector('.welcome')
+      if (welcomeEl) {
+        animCtx?.revert()
+        nextTick(() => animateWelcome())
+      }
+    })
+  },
+  {immediate: true}
+)
+
 onMounted(() => {
   if (!listRef.value) return
   listRef.value.addEventListener('click', handleCopyClick)
   listRef.value.addEventListener('click', handleMermaidClick)
+  animateWelcome()
 })
 
 onUnmounted(() => {
+  animCtx?.revert()
   if (listRef.value) {
     listRef.value.removeEventListener('click', handleCopyClick)
     listRef.value.removeEventListener('click', handleMermaidClick)
@@ -883,6 +953,11 @@ onUnmounted(() => {
 
 .msg-fade-move {
   transition: transform 0.344s var(--ease-primary);
+}
+
+.msg-block.msg-animated {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ── User Message ────────────────────────────────────── */

@@ -1,15 +1,15 @@
 <template>
-  <div class="input-bar">
-    <div :class="{ focused, disabled: chatStore.isLoading }" class="input-shell">
+  <div ref="inputBar" class="input-bar">
+    <div ref="inputShell" :class="{ focused, disabled: chatStore.isLoading }" class="input-shell">
       <textarea
           id="chat-input" ref="textareaRef" v-model="inputText"
           :disabled="chatStore.isLoading"
           :placeholder="chatStore.isLoading ? 'Waiting for response…' : 'Ask anything about Java & Spring…'" aria-label="Chat input"
           class="input-field" rows="1"
-          @blur="focused = false" @focus="focused = true"
+          @blur="handleBlur" @focus="handleFocus"
           @input="autoResize" @keydown="handleKeydown"
       />
-      <button id="send-btn" :class="{ active: inputText.trim(), loading: chatStore.isLoading }"
+      <button id="send-btn" ref="sendBtnRef" :class="{ active: inputText.trim(), loading: chatStore.isLoading }"
               :disabled="!inputText.trim() && !chatStore.isLoading" aria-label="Send message"
               class="send-btn" @click="handleSend">
         <svg v-if="chatStore.isLoading" class="stop-icon" fill="currentColor" height="14" viewBox="0 0 24 24"
@@ -30,13 +30,19 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, nextTick} from 'vue'
+import {ref, nextTick, watch, onMounted, onUnmounted} from 'vue'
+import {gsap} from 'gsap'
 import {useChatStore} from '@/stores/chat'
 
 const chatStore = useChatStore()
 const inputText = ref('')
 const focused = ref(false)
 const textareaRef = ref<HTMLTextAreaElement>()
+const inputShell = ref<HTMLElement>()
+const sendBtnRef = ref<HTMLElement>()
+const inputBar = ref<HTMLElement>()
+let ctx: gsap.Context | null = null
+let pulseTween: gsap.core.Tween | null = null
 
 function autoResize() {
   const el = textareaRef.value;
@@ -49,6 +55,20 @@ function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     handleSend()
+  }
+}
+
+function handleFocus() {
+  focused.value = true
+  if (inputShell.value) {
+    gsap.to(inputShell.value, {borderColor: 'var(--color-azure)', boxShadow: '0 0 0 2px rgba(0,113,227,0.12)', duration: 0.2, ease: 'power1.out'})
+  }
+}
+
+function handleBlur() {
+  focused.value = false
+  if (inputShell.value) {
+    gsap.to(inputShell.value, {borderColor: 'var(--color-silver-mist)', boxShadow: 'none', duration: 0.2, ease: 'power1.out'})
   }
 }
 
@@ -65,6 +85,29 @@ function handleSend() {
     if (textareaRef.value) textareaRef.value.style.height = 'auto'
   })
 }
+
+watch(() => inputText.value.trim(), (val) => {
+  if (val && sendBtnRef.value) {
+    pulseTween = gsap.to(sendBtnRef.value, {scale: 1.06, duration: 0.8, ease: 'sine.inOut', yoyo: true, repeat: -1})
+  } else if (!val && pulseTween) {
+    pulseTween.kill()
+    pulseTween = null
+    if (sendBtnRef.value) gsap.set(sendBtnRef.value, {scale: 1})
+  }
+})
+
+onMounted(() => {
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline({defaults: {ease: 'power2.out'}})
+    tl.from('.input-shell', {autoAlpha: 0, y: 12, duration: 0.4}, 0.3)
+      .from('.input-footer', {autoAlpha: 0, y: 8, duration: 0.3}, 0.5)
+  }, inputBar.value)
+})
+
+onUnmounted(() => {
+  pulseTween?.kill()
+  ctx?.revert()
+})
 </script>
 
 <style scoped>

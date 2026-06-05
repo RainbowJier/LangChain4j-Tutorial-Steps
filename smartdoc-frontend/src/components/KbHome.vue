@@ -1,5 +1,5 @@
 <template>
-  <div class="kb-home">
+  <div ref="homeRef" class="kb-home">
     <div class="home-hero">
       <div class="hero-icon">
         <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="22">
@@ -55,6 +55,8 @@
 </template>
 
 <script lang="ts" setup>
+import {ref, onMounted, onUnmounted} from 'vue'
+import {gsap} from 'gsap'
 import type {KbCategory, KbDocument} from '@/types'
 
 defineProps<{
@@ -67,6 +69,9 @@ defineEmits<{
   'select-doc': [id: string]
 }>()
 
+const homeRef = ref<HTMLElement>()
+let ctx: gsap.Context | null = null
+
 function formatTime(ts: number): string {
   const d = new Date(ts)
   const now = new Date()
@@ -75,6 +80,21 @@ function formatTime(ts: number): string {
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
   return d.toLocaleDateString()
 }
+
+onMounted(() => {
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline({defaults: {ease: 'power3.out', duration: 0.45}})
+    tl.from('.hero-icon', {autoAlpha: 0, scale: 0.7, duration: 0.35}, 0)
+      .from('.hero-title', {autoAlpha: 0, y: 14}, 0.12)
+      .from('.hero-sub', {autoAlpha: 0, y: 10}, 0.2)
+      .from('.cat-card', {autoAlpha: 0, y: 16, stagger: 0.06}, 0.3)
+      .from('.doc-row', {autoAlpha: 0, y: 12, stagger: 0.04}, 0.45)
+  }, homeRef.value)
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
 </script>
 
 <style scoped>

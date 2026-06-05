@@ -1,7 +1,7 @@
 <template>
-  <div class="app-shell">
+  <div ref="appShell" class="app-shell">
 
-    <aside :class="{ open: isSidebarOpen }" class="sidebar">
+    <aside ref="sidebarEl" :class="{ open: isSidebarOpen }" class="sidebar">
       <div class="sidebar-head">
         <div class="sidebar-brand">
           <div class="sidebar-icon">
@@ -30,8 +30,8 @@
 
     <div v-if="isSidebarOpen" class="sidebar-overlay" @click="isSidebarOpen = false"/>
 
-    <div class="main-col">
-      <header class="topbar">
+    <div ref="chatMainEl" class="main-col">
+      <header ref="topbarEl" class="topbar">
         <button aria-label="Toggle Navigation" class="sidebar-toggle" @click="isSidebarOpen = !isSidebarOpen">
           <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"
                width="14">
@@ -61,7 +61,8 @@
 </template>
 
 <script lang="ts" setup>
-import {ref} from 'vue'
+import {ref, onMounted, onUnmounted} from 'vue'
+import {gsap} from 'gsap'
 import SessionList from '@/components/SessionList.vue'
 import MessageList from '@/components/MessageList.vue'
 import MessageInput from '@/components/MessageInput.vue'
@@ -69,11 +70,31 @@ import {useChatStore} from '@/stores/chat'
 
 const isSidebarOpen = ref(false)
 const chatStore = useChatStore()
+const appShell = ref<HTMLElement>()
+const sidebarEl = ref<HTMLElement>()
+const topbarEl = ref<HTMLElement>()
+const chatMainEl = ref<HTMLElement>()
+let ctx: gsap.Context | null = null
 
 function createNewChat() {
   chatStore.createSession();
   isSidebarOpen.value = false
 }
+
+onMounted(() => {
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline({defaults: {ease: 'power2.out'}})
+
+    tl.from('.topbar', {y: -20, autoAlpha: 0, duration: 0.4}, 0)
+      .from('.sidebar', {x: -20, autoAlpha: 0, duration: 0.5}, 0.1)
+      .from('.chat-main', {autoAlpha: 0, y: 12, duration: 0.5}, 0.2)
+
+  }, appShell.value)
+})
+
+onUnmounted(() => {
+  ctx?.revert()
+})
 </script>
 
 <style scoped>

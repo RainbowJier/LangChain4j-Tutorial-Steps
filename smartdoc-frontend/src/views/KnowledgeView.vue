@@ -1,8 +1,8 @@
 <template>
-  <div class="knowledge-portal">
+  <div ref="kpRef" class="knowledge-portal">
 
     <!-- ── Top Bar ──────────────────────────── -->
-    <header class="topbar">
+    <header ref="topbarRef" class="topbar">
       <div class="topbar-left">
         <div class="topbar-brand">
           <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="14">
@@ -109,7 +109,8 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, onUnmounted} from 'vue'
+import {gsap} from 'gsap'
 import KbSidebar from '@/components/KbSidebar.vue'
 import KbHome from '@/components/KbHome.vue'
 import KbAskView from '@/components/KbAskView.vue'
@@ -177,10 +178,25 @@ function handleNew() {
   activeMode.value = 'ask'
 }
 
+const kpRef = ref<HTMLElement>()
+const topbarRef = ref<HTMLElement>()
+let kpCtx: gsap.Context | null = null
+
 onMounted(() => {
   if (chatStore.sessions.length === 0) {
     chatStore.createSession()
   }
+
+  kpCtx = gsap.context(() => {
+    const tl = gsap.timeline({defaults: {ease: 'power2.out'}})
+    tl.from('.topbar', {y: -16, autoAlpha: 0, duration: 0.35}, 0)
+      .from('.kb-sidebar', {x: -16, autoAlpha: 0, duration: 0.4}, 0.1)
+      .from('.content-col', {autoAlpha: 0, y: 12, duration: 0.4}, 0.15)
+  }, kpRef.value)
+})
+
+onUnmounted(() => {
+  kpCtx?.revert()
 })
 </script>
 
