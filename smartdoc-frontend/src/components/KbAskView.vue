@@ -343,6 +343,7 @@ function preprocessMermaid(definition: string): string {
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i]
     if (line === undefined) continue
+    const indent = /^\s*/.exec(line)![0] || ''
     let t = line.trim()
     if (!t || t.startsWith('%%')) continue
     t = t.replace(/\b(flowchart|graph)\s*(TD|TB|LR|BT|RL)\b/gi, '$1 $2')
@@ -366,7 +367,7 @@ function preprocessMermaid(definition: string): string {
       }
     }
     t = t.replace(/-->/g, ' --> ')
-    processedLines.push(t)
+    processedLines.push(indent + t)
   }
   return processedLines.join('\n')
 }
