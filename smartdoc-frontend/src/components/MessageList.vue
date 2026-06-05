@@ -397,21 +397,42 @@ const md = new MarkdownIt({
   }
 })
 
+const MERMAID_CLASS_NAMES = ['warning', 'decision', 'highlight', 'success', 'primary', 'default', 'accent', 'error', 'warn', 'info', 'sub']
+
 function preprocessMermaid(definition: string): string {
   let clean = definition.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
   clean = clean.replace(/%%\{init:[\s\S]*?\}%%/gi, '')
-  clean = clean.replace(/^([ \t]*)(flowchart|graph)(TD|LR|BT|RL)\b/gim, '$1$2 $3')
-  clean = clean.replace(/^(subgraph)([A-Za-z0-9_\u4e00-\u9fff])/gm, '$1 $2')
-  clean = clean.replace(/(classDef)(primary|sub|success|error|decision)(fill|stroke|color|font-size)/g, '$1 $2 $3')
-  clean = clean.replace(/(class)([A-Z][a-zA-Z0-9,]+)(primary|sub|success|error|decision);/g, '$1 $2 $3;')
   const lines = clean.split('\n')
   const processedLines: string[] = []
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
+    let line = lines[i]
     if (line === undefined) continue
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('%%')) continue
-    processedLines.push(line)
+    let t = line.trim()
+    if (!t || t.startsWith('%%')) continue
+    t = t.replace(/\b(flowchart|graph)\s*(TD|TB|LR|BT|RL)\b/gi, '$1 $2')
+    t = t.replace(/\b(direction)\s*(TB|BT|LR|RL|TD)\b/gi, '$1 $2')
+    t = t.replace(/\bsubgraph\s*([A-Za-z0-9_\u4e00-\u9fff\[")])/gi, 'subgraph $1')
+    t = t.replace(/\bclassDef\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(fill|stroke|color|font-size|fontFamily|fontStyle|stroke-width|stroke-dasharray|border-radius)/gi, 'classDef $1 $2')
+    if (/^\s*class\s*[A-Z]/.test(t) && !/^\s*classDef/.test(t)) {
+      const s = t.replace(/^\s*class\s+/, 'class')
+      if (s.endsWith(';')) {
+        const body = s.slice(5, -1)
+        let fixed = false
+        for (const cn of MERMAID_CLASS_NAMES) {
+          const idx = body.lastIndexOf(cn)
+          if (idx !== -1 && idx + cn.length === body.length) {
+            t = `class ${body.slice(0, idx)} ${cn};`
+            fixed = true
+            break
+          }
+        }
+        if (!fixed) t = s.slice(0, 5) + ' ' + s.slice(5)
+      }
+    }
+    t = t.replace(/-->/g, ' --> ')
+    t = t.replace(/>\|/g, '> |')
+    t = t.replace(/\|"/g, '| "')
+    processedLines.push(t)
   }
   return processedLines.join('\n')
 }
@@ -1303,11 +1324,10 @@ onUnmounted(() => {
 .markdown-body :deep(.mermaid-container) {
   position: relative;
   margin: var(--spacing-16) 0;
-  padding: var(--spacing-20);
   background: var(--surface-card);
   border-radius: var(--radius-cards);
   border: 1px solid var(--color-silver-mist);
-  overflow: hidden;
+  overflow: visible;
   transition: border-color var(--duration-fast) var(--ease-primary);
 }
 
@@ -1320,7 +1340,7 @@ onUnmounted(() => {
   top: var(--spacing-8);
   right: var(--spacing-8);
   display: flex;
-  gap: 4px;
+  gap: 6px;
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-primary);
   z-index: 5;
@@ -1333,32 +1353,40 @@ onUnmounted(() => {
 .markdown-body :deep(.mermaid-tool-btn) {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 4px var(--spacing-8);
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 10px;
   font-family: var(--font-text);
   font-size: 11px;
   font-weight: var(--weight-medium);
+  line-height: 1;
   color: var(--color-graphite);
   background: var(--surface-card);
   border: 1px solid var(--color-silver-mist);
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
   transition: all var(--duration-fast) var(--ease-primary);
 }
 
 .markdown-body :deep(.mermaid-tool-btn:hover) {
   color: var(--color-ink);
   border-color: var(--color-azure);
+  background: rgba(0, 122, 255, 0.06);
 }
 
 .markdown-body :deep(.mermaid-svg) {
-  display: flex;
-  justify-content: center;
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 70vh;
+  padding: var(--spacing-20);
+  -webkit-overflow-scrolling: touch;
 }
 
 .markdown-body :deep(.mermaid-svg svg) {
+  display: block;
   max-width: 100%;
+  width: fit-content;
+  min-width: min(100%, 400px);
   height: auto;
   font-family: var(--font-text);
 }
@@ -1368,6 +1396,11 @@ onUnmounted(() => {
   font-size: var(--text-body-sm);
   color: var(--color-graphite);
   white-space: pre-wrap;
+}
+.markdown-body :deep(.mermaid-tool-btn.active) {
+  color: #ffffff;
+  background: #1d1d1f;
+  border-color: #1d1d1f;
 }
 
 /* ── Zoom Modal ──────────────────────────────────────── */
@@ -1396,6 +1429,10 @@ onUnmounted(() => {
   animation: modalScaleUp 0.344s var(--ease-primary) forwards;
 }
 
+@keyframes sourceFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 @keyframes modalScaleUp {
   from {
     opacity: 0;
