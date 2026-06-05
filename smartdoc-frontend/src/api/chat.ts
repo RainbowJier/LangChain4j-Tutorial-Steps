@@ -23,7 +23,6 @@ export function streamChat(
             let buffer = ''
 
             let eventData: string[] = []
-            let eventType = ''
 
             while (true) {
                 const {done, value} = await reader.read()
@@ -34,16 +33,13 @@ export function streamChat(
                 buffer = lines.pop() || ''
 
                 for (const line of lines) {
-                    if (line.startsWith('event:')) {
-                        eventType = line.substring(6).trim()
-                    } else if (line.startsWith('data: ')) {
+                    if (line.startsWith('data: ')) {
                         eventData.push(line.substring(6))
                     } else if (line.startsWith('data:')) {
                         eventData.push(line.substring(5))
                     } else if (line === '' && eventData.length > 0) {
                         const data = eventData.join('\n')
                         eventData = []
-                        eventType = ''
                         if (data === '[DONE]') {
                             onComplete()
                         } else {
