@@ -1,11 +1,5 @@
-import type {ApiResponse, ChatRequest} from '@/types'
-
-async function parseResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const json: ApiResponse<T> = await response.json()
-    if (json.code !== 200) throw new Error(json.msg || `Error ${json.code}`)
-    return json.data
-}
+import {get, del} from '@/api'
+import type {ChatRequest} from '@/types'
 
 export function streamChat(
     request: ChatRequest,
@@ -49,7 +43,6 @@ export function streamChat(
                     } else if (line === '' && eventData.length > 0) {
                         const data = eventData.join('\n')
                         eventData = []
-                        const type = eventType
                         eventType = ''
                         if (data === '[DONE]') {
                             onComplete()
@@ -79,15 +72,10 @@ export function streamChat(
     return controller
 }
 
-export async function getChatHistory(sessionId: string): Promise<{ role: string; content: string }[]> {
-    const response = await fetch(`/api/chat/history/${encodeURIComponent(sessionId)}`)
-    return parseResponse<{ role: string; content: string }[]>(response)
+export async function getChatHistory(sessionId: string): Promise<{role: string; content: string}[]> {
+    return get(`/chat/history/${encodeURIComponent(sessionId)}`)
 }
 
 export async function clearSession(sessionId: string): Promise<void> {
-    const response = await fetch(`/api/chat/session/${encodeURIComponent(sessionId)}`, {
-        method: 'DELETE'
-    })
-    if (!response.ok) throw new Error(`Failed to clear session: ${response.statusText}`)
+    await del(`/chat/session/${encodeURIComponent(sessionId)}`)
 }
-
