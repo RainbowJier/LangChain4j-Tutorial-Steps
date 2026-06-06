@@ -1,0 +1,47 @@
+{
+  "project": "SmartDoc 智能文档助手 — V1.2 开发任务",
+  "created": "2026-06-06",
+  "updated": "2026-06-06",
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Add @Size(max=2000) validation to ChatReq.message",
+      "description": "给 ChatReq.message 字段补充 @Size(max=2000) 注解，防止超长输入导致 LLM Token 过高",
+      "files": ["smartdoc-api/src/main/java/com/smartdoc/api/dto/req/ChatReq.java"],
+      "status": "completed",
+      "dependencies": []
+    },
+    {
+      "id": 2,
+      "name": "Implement concurrent session conflict control",
+      "description": "使用 ConcurrentHashMap + AtomicBoolean 实现会话级锁，同一 sessionId 并发请求时后一个返回 503",
+      "files": ["smartdoc-api/src/main/java/com/smartdoc/api/ChatController.java"],
+      "status": "completed",
+      "dependencies": []
+    },
+    {
+      "id": 3,
+      "name": "Implement structured SSE error events",
+      "description": "将 emitter.completeWithError() 替换为发送结构化 JSON 错误事件 data:{\"error\":\"...\"} 后正常 complete()",
+      "files": ["smartdoc-api/src/main/java/com/smartdoc/api/ChatController.java"],
+      "status": "completed",
+      "dependencies": [2]
+    },
+    {
+      "id": 4,
+      "name": "Fix document upload error handling",
+      "description": "上传接口区分错误类型：格式不支持 → HTTP 400，解析/向量化失败 → HTTP 500，而非统一 200 + AjaxResult.failed()",
+      "files": ["smartdoc-api/src/main/java/com/smartdoc/api/DocumentController.java"],
+      "status": "completed",
+      "dependencies": []
+    },
+    {
+      "id": 5,
+      "name": "Build and verify compilation",
+      "description": "运行 mvn compile -DskipTests 验证所有修改编译通过",
+      "files": [],
+      "status": "completed",
+      "dependencies": [1, 2, 3, 4]
+    }
+  ]
+}

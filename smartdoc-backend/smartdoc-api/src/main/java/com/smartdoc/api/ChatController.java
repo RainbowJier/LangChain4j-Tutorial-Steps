@@ -8,7 +8,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import com.smartdoc.chat.ChatSessionManager;
-import com.smartdoc.chat.SpringCodeAssistant;
+import com.smartdoc.chat.GeneralAssistant;
 import dev.langchain4j.service.TokenStream;
 import jakarta.annotation.PreDestroy;
 import jakarta.validation.Valid;
@@ -28,13 +28,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
 public class ChatController {
+
+    private final ConcurrentHashMap<String, AtomicBoolean> busySessions = new ConcurrentHashMap<>();
+
     private final ExecutorService executor = new ThreadPoolExecutor(
             4, 20, 60L, TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(200),
             r -> { Thread t = new Thread(r, "sse-chat"); t.setDaemon(true); return t; },
             new ThreadPoolExecutor.CallerRunsPolicy());
 
-    private final SpringCodeAssistant assistant;
+    private final GeneralAssistant assistant;
 
     private final ChatSessionManager sessionManager;
 
@@ -53,8 +56,24 @@ public class ChatController {
 
     @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chat(@Valid @RequestBody ChatReq request) {
-        SseEmitter emitter = new SseEmitter(120_000L);
         String sessionId = request.sessionId() != null ? request.sessionId() : "default";
+
+        AtomicBoolean sessionLock = busySessions.putIfAbsent(sessionId, new AtomicBoolean(true));
+        if (sessionLock != null) {
+            if (sessionLock.get()) {
+                SseEmitter errorEmitter = new SseEmitter(0L);
+                try {
+                    errorEmitter.send(SseEmitter.event().data("{\"error\":\"Current session is busy, please try again later\"}"));
+                } catch (IOException ignored) {
+                }
+                errorEmitter.complete();
+                log.warn("Concurrent request rejected for session: {}", sessionId);
+                return errorEmitter;
+            }
+            busySessions.put(sessionId, new AtomicBoolean(true));
+        }
+
+        SseEmitter emitter = new SseEmitter(120_000L);
         AtomicBoolean cancelled = new AtomicBoolean(false);
 
         Future<?> future = executor.submit(() -> {
@@ -70,7 +89,7 @@ public class ChatController {
                                 emitter.send(SseEmitter.event().data(token));
                             } catch (IOException e) {
                                 cancelled.set(true);
-                                emitter.completeWithError(e);
+                                sendErrorEvent(emitter, "SSE connection lost");
                             }
                         })
                         .onCompleteResponse(response -> {
@@ -87,27 +106,39 @@ public class ChatController {
                         .onError(error -> {
                             if (cancelled.get()) return;
                             log.error("Chat streaming error", error);
-                            emitter.completeWithError(error);
+                            sendErrorEvent(emitter, "LLM service is temporarily unavailable");
                         })
                         .start();
             } catch (Exception e) {
                 log.error("Failed to start chat stream", e);
-                emitter.completeWithError(e);
+                sendErrorEvent(emitter, "Failed to start chat stream");
             }
         });
 
         emitter.onTimeout(() -> {
             cancelled.set(true);
             future.cancel(true);
+            busySessions.remove(sessionId);
             log.warn("SSE connection timed out for session: {}", sessionId);
         });
 
         emitter.onCompletion(() -> {
             cancelled.set(true);
             future.cancel(true);
+            busySessions.remove(sessionId);
         });
 
         return emitter;
+    }
+
+    private void sendErrorEvent(SseEmitter emitter, String message) {
+        try {
+            emitter.send(SseEmitter.event().data("{\"error\":\"" + message + "\"}"));
+        } catch (IOException e) {
+            log.warn("Failed to send error event", e);
+        } finally {
+            emitter.complete();
+        }
     }
 
     @GetMapping("/history/{sessionId}")
@@ -134,6 +165,7 @@ public class ChatController {
 
     @DeleteMapping("/session/{sessionId}")
     public AjaxResult<Void> clearSession(@PathVariable String sessionId) {
+        busySessions.remove(sessionId);
         sessionManager.clearSession(sessionId);
         return AjaxResult.success();
     }

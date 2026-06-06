@@ -5,9 +5,8 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.UserMessage;
 
-public interface SpringCodeAssistant {
+public interface GeneralAssistant {
 
-
-    @SystemMessage(fromResource = "prompts/spring-code-assistant.md")
+    @SystemMessage(fromResource = "prompts/smartdoc-assistant.md")
     TokenStream chat(@UserMessage String message, @MemoryId String sessionId);
 }
